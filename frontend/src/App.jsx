@@ -14,6 +14,7 @@ import CartDrawer from "./components/CartDrawer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
+import AllReviews from "./pages/AllReviews";
 
 // ─── Lazy-loaded pages (code-split per route) ────────────────────────────
 const Home              = lazy(() => import("./pages/Home"));
@@ -21,6 +22,7 @@ const Menu              = lazy(() => import("./pages/Menu"));
 const OrderSummaryPage  = lazy(() => import("./pages/OrderSummaryPage"));
 const AboutUs           = lazy(() => import("./pages/AboutUs"));
 const ContactUs         = lazy(() => import("./pages/ContactUs"));
+
 const Reservation       = lazy(() => import("./pages/Reservation"));
 const Gallery           = lazy(() => import("./pages/Gallery"));
 const Login             = lazy(() => import("./pages/Login"));
@@ -107,6 +109,7 @@ export default function App() {
                 <Route path="/menu"      element={<Menu />} />
                 <Route path="/about"     element={<AboutUs />} />
                 <Route path="/contactus" element={<ContactUs />} />
+                <Route path="/reviews" element={<AllReviews />} />
                 <Route path="/gallery"   element={<Gallery />} />
                 <Route path="/cart"      element={<CartDrawer />} />
 

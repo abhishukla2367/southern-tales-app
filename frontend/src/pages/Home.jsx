@@ -300,8 +300,21 @@ const Home = () => {
   const [sent,       setSent]       = useState(false);
 
   useScrollReveal();
-
-  // Auto-advance hero
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_1280/v1772547194/heroimage_y7tlwp.jpg";
+    link.setAttribute("imagesrcset", [
+      "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_640/v1772547194/heroimage_y7tlwp.jpg 640w",
+      "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_1280/v1772547194/heroimage_y7tlwp.jpg 1280w",
+      "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_1920/v1772547194/heroimage_y7tlwp.jpg 1920w",
+    ].join(", "));
+    link.setAttribute("imagesizes", "100vw");
+    link.setAttribute("fetchpriority", "high");
+    document.head.appendChild(link);
+    return () => document.head.removeChild(link);
+  }, []);
   useEffect(() => {
     const t = setInterval(() => setHeroIdx((p) => (p + 1) % heroSlides.length), 3500);
     return () => clearInterval(t);
@@ -343,7 +356,7 @@ const Home = () => {
               width={1280}
               height={720}
               // Only the first (visible) slide is high priority & eager
-              fetchPriority={i === 0 ? "high" : "low"}
+              fetchpriority={i === 0 ? "high" : "low"}
               loading={i === 0 ? "eager" : "lazy"}
               decoding={i === 0 ? "sync" : "async"}
               className="w-full h-full object-cover scale-[1.15]"

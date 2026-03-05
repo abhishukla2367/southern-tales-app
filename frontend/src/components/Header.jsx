@@ -10,7 +10,7 @@ import { useCart } from "../context/CartContext";
 // ─── CLOUDINARY LOGO CONFIG ──────────────────────────────────────────────────
 const LOGO_URL = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_200/v1772560792/southern-tales-logo_knrfgm.jpg";
 
-const PHONE = "+919999999999";
+const PHONE = "+919876543210";
 const dial = () => window.open(`tel:${PHONE}`, "_self");
 
 // ─── Single source of truth for all nav links ──────────────────────────────
@@ -168,7 +168,7 @@ const Header = () => {
               width={56}
               height={56}
               loading="eager"
-              fetchPriority="high"
+              fetchpriority="high"
               className="w-14 h-14 rounded-full object-cover ring-2 ring-[#f5c27a]/30"
             />
             <div className="flex flex-col leading-tight">

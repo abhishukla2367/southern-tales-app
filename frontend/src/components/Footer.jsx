@@ -33,10 +33,10 @@ const Footer = () => {
   ];
 
   const contactInfo = [
-    { Icon: MapPin, text: "CBD Belapur, Navi Mumbai, Maharashtra" },
-    { Icon: Phone,  text: "+91 98765 43210" },
-    { Icon: Mail,   text: "hello@southerntales.in" },
-    { Icon: Clock,  text: "Mon – Fri: 7 AM – 10:30 PM\nSat – Sun: 8 AM – 11 PM" },
+    { Icon: MapPin, text: "CBD Belapur, Navi Mumbai, Maharashtra", href: null },
+    { Icon: Phone,  text: "+91 98765 43210",       href: "tel:+919876543210" },
+    { Icon: Mail,   text: "hello@southerntales.in", href: "mailto:hello@southerntales.in" },
+    { Icon: Clock,  text: "Mon – Fri: 7 AM – 10:30 PM\nSat – Sun: 8 AM – 11 PM", href: null },
   ];
 
   const services = ["Dine In", "Takeaway", "Online Order", "Reservation", "Catering", "Events"];
@@ -110,12 +110,21 @@ const Footer = () => {
               Contact Us
             </h4>
             <div className="flex flex-col gap-5">
-              {contactInfo.map(({ Icon, text }) => (
+              {contactInfo.map(({ Icon, text, href }) => (
                 <div key={text} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Icon size={15} className="text-orange-500" />
+                    <Icon size={15} className="text-orange-500" aria-hidden="true" />
                   </div>
-                  <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line">{text}</p>
+                  {href ? (
+                    <a
+                      href={href}
+                      className="text-gray-400 text-sm leading-relaxed hover:text-orange-500 transition-colors duration-200"
+                    >
+                      {text}
+                    </a>
+                  ) : (
+                    <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line">{text}</p>
+                  )}
                 </div>
               ))}
             </div>

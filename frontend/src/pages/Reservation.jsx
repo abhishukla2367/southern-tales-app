@@ -7,7 +7,7 @@ import TimePicker from "../components/reservations/TimePicker";
 // ── Constants ────────────────────────────────────────────────────────────────
 const TABLE_IDS = ["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10",
                    "T11","T12","T13","T14","T15","T16","T17","T18","T19","T20"];
-const WHATSAPP_NUMBER = "919876543210"; // ← replace with your number
+const WHATSAPP_NUMBER = "919876543210"; 
 const BUSINESS_HOURS = {
   weekday: { open: "07:00", close: "22:30" }, // Mon–Fri
   weekend: { open: "08:00", close: "23:00" }, // Sat–Sun
@@ -400,32 +400,32 @@ export default function Reservation() {
                     <input type="email" name="email" style={{ display:"none" }} tabIndex="-1" autoComplete="off" />
 
                     <div>
-                      <label className={labelCls}>Full Name</label>
-                      <input type="text" name="ux_user_fullname" autoComplete="new-password"
+                      <label htmlFor="res-name" className={labelCls}>Full Name</label>
+                      <input id="res-name" type="text" name="ux_user_fullname" autoComplete="new-password"
                         value={form.customerName} onChange={handleChange}
                         className={inputCls(errors.customerName)} placeholder="Your full name" />
                       {errors.customerName && <p className="text-red-400 text-xs mt-1">{errors.customerName}</p>}
                     </div>
 
                     <div>
-                      <label className={labelCls}>Email Address</label>
-                      <input type="email" name="ux_user_contact_email" autoComplete="new-password"
+                      <label htmlFor="res-email" className={labelCls}>Email Address</label>
+                      <input id="res-email" type="email" name="ux_user_contact_email" autoComplete="new-password"
                         value={form.customerEmail} onChange={handleChange}
                         className={inputCls(errors.customerEmail)} placeholder="hello@example.com" />
                       {errors.customerEmail && <p className="text-red-400 text-xs mt-1">{errors.customerEmail}</p>}
                     </div>
 
                     <div>
-                      <label className={labelCls}>Phone Number</label>
-                      <input type="tel" name="ux_user_phone_num" autoComplete="new-password"
+                      <label htmlFor="res-phone" className={labelCls}>Phone Number</label>
+                      <input id="res-phone" type="tel" name="ux_user_phone_num" autoComplete="new-password"
                         value={form.phone} onChange={handleChange}
                         className={inputCls(errors.phone)} placeholder="9876543210" />
                       {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
                     </div>
 
                     <div>
-                      <label className={labelCls}>Number of Guests</label>
-                      <select name="ux_guest_count" value={form.guests} onChange={handleChange}
+                      <label htmlFor="res-guests" className={labelCls}>Number of Guests</label>
+                      <select id="res-guests" name="ux_guest_count" value={form.guests} onChange={handleChange}
                         className={inputCls(errors.guests)}>
                         <option value="">Select guests</option>
                         {[1,2,3,4,5,6,7,8].map(n => (
@@ -442,12 +442,12 @@ export default function Reservation() {
                   <div className="space-y-4">
                     {/* Table picker */}
                     <div>
-                      <label className={labelCls}>
+                      <label htmlFor="res-table" className={labelCls}>
                         Preferred Table
                         <span className="normal-case text-zinc-600 font-normal ml-1">(optional)</span>
                         {loadingAvail && <span className="ml-2 text-amber-500 text-[10px] animate-pulse">checking...</span>}
                       </label>
-                      <select name="tableNumber" value={form.tableNumber}
+                      <select id="res-table" name="tableNumber" value={form.tableNumber}
                         onChange={(e) => handleTableChange(e.target.value)}
                         className={inputCls(tableWarning)}>
                         <option value="">— No preference —</option>
@@ -467,8 +467,8 @@ export default function Reservation() {
 
                     {/* Date */}
                     <div>
-                      <label className={labelCls}>Date</label>
-                      <input type="date" value={form.date} min={today}
+                      <label htmlFor="res-date" className={labelCls}>Date</label>
+                      <input id="res-date" type="date" value={form.date} min={today}
                         onChange={handleDateChange}
                         className={`${inputCls(errors.date)} [color-scheme:dark]`} />
                       {errors.date && <p className="text-red-400 text-xs mt-1">{errors.date}</p>}

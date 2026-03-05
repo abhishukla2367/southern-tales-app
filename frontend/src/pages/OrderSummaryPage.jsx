@@ -211,10 +211,11 @@ const OrderSummaryPage = () => {
             {isDelivery && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaMapMarkerAlt /> Delivery Address
+                  <label htmlFor="delivery-address" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <FaMapMarkerAlt aria-hidden="true" /> Delivery Address
                   </label>
                   <input
+                    id="delivery-address"
                     type="text"
                     placeholder="Enter your delivery address"
                     value={address}
@@ -223,10 +224,11 @@ const OrderSummaryPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaPhoneAlt /> Phone Number
+                  <label htmlFor="delivery-phone" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <FaPhoneAlt aria-hidden="true" /> Phone Number
                   </label>
                   <input
+                    id="delivery-phone"
                     type="text"
                     placeholder="10-digit phone number"
                     value={phone}
@@ -235,10 +237,11 @@ const OrderSummaryPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaClock /> Preferred Time
+                  <label htmlFor="delivery-time" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <FaClock aria-hidden="true" /> Preferred Time
                   </label>
                   <input
+                    id="delivery-time"
                     type="text"
                     placeholder="e.g. 30–45 minutes"
                     value={time}
@@ -254,17 +257,18 @@ const OrderSummaryPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaMapMarkerAlt /> Pickup Location
+                    <FaMapMarkerAlt aria-hidden="true" /> Pickup Location
                   </label>
                   <div className="w-full bg-gray-900/50 border border-dashed border-gray-700 p-3 rounded-xl text-yellow-500 text-sm">
                     Sector 15, CBD Belapur, Navi Mumbai, Maharashtra 400614
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaClock /> Preferred Pickup Time
+                  <label htmlFor="pickup-time" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <FaClock aria-hidden="true" /> Preferred Pickup Time
                   </label>
                   <input
+                    id="pickup-time"
                     type="text"
                     placeholder="e.g. 40–50 minutes"
                     value={time}
@@ -279,10 +283,11 @@ const OrderSummaryPage = () => {
             {isDineIn && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaUtensils /> Your Name
+                  <label htmlFor="dinein-name" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <FaUtensils aria-hidden="true" /> Your Name
                   </label>
                   <input
+                    id="dinein-name"
                     type="text"
                     placeholder="Guest name"
                     value={guestName}
@@ -291,10 +296,11 @@ const OrderSummaryPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaMapMarkerAlt /> Table Number
+                  <label htmlFor="dinein-table" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <FaMapMarkerAlt aria-hidden="true" /> Table Number
                   </label>
                   <input
+                    id="dinein-table"
                     type="text"
                     placeholder="e.g. T4"
                     value={tableNumber}
@@ -303,10 +309,11 @@ const OrderSummaryPage = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                    <FaUsers /> Number of Guests
+                  <label htmlFor="dinein-guests" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                    <FaUsers aria-hidden="true" /> Number of Guests
                   </label>
                   <input
+                    id="dinein-guests"
                     type="number"
                     placeholder="e.g. 2"
                     min="1"
@@ -320,10 +327,11 @@ const OrderSummaryPage = () => {
 
             {/* ── Payment method (all order types) ── */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
-                <FaCreditCard /> Payment Method
+              <label htmlFor="payment-method" className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                <FaCreditCard aria-hidden="true" /> Payment Method
               </label>
               <select
+                id="payment-method"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 p-3 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none text-white transition"

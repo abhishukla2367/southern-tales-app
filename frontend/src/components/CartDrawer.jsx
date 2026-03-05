@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import emptyCartImage from "../assets/images/empty-cart.jpg";
 import eatsureLogo from "../assets/images/eat-sure-logo.png";
-import Footer from "../components/Footer";
 
 const CartDrawer = () => {
   const navigate = useNavigate();
@@ -274,10 +273,6 @@ const CartDrawer = () => {
 
           </div>
         )}
-      </div>
-
-      <div className="mt-16">
-        <Footer />
       </div>
     </div>
   );
