@@ -5,8 +5,8 @@ import emptyCartImage from "../assets/images/empty-cart.jpg";
 import eatsureLogo from "../assets/images/eat-sure-logo.png";
 import API from "../api/axiosConfig";
 import socket from "../socket";
-import TimePicker from "./reservations/Timepicker";
-import DatePicker from "./reservations/Datepicker";
+import TimePicker from "./reservations/TimePicker";
+import DatePicker from "./reservations/DatePicker";
 import OutOfHoursPopup from "./reservations/OutOfHoursPopup";
 
 const TABLE_IDS = [
