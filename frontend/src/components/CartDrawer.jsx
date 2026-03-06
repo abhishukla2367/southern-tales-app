@@ -1,11 +1,76 @@
 ﻿import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import emptyCartImage from "../assets/images/empty-cart.jpg";
 import eatsureLogo from "../assets/images/eat-sure-logo.png";
+import API from "../api/axiosConfig";
+import socket from "../socket";
+import TimePicker from "./reservations/Timepicker";
+import DatePicker from "./reservations/Datepicker";
+import OutOfHoursPopup from "./reservations/OutOfHoursPopup";
+
+const TABLE_IDS = [
+  "T1","T2","T3","T4","T5","T6","T7","T8","T9","T10",
+  "T11","T12","T13","T14","T15","T16","T17","T18","T19","T20",
+];
+
+const GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
+
+const toDateStr = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+
+const getHoursForDate = (dateStr) => {
+  const d = dateStr ? new Date(dateStr + "T00:00:00") : new Date();
+  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+  return isWeekend
+    ? { openH: 8,  openM: 0, closeH: 23, closeM: 0  }
+    : { openH: 7,  openM: 0, closeH: 22, closeM: 30 };
+};
+
+const isWithinBusinessHours = (val, dateStr) => {
+  if (!val) return true;
+  const match = val.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return true;
+  const totalMins = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+  const { openH, openM, closeH, closeM } = getHoursForDate(dateStr);
+  return totalMins >= openH * 60 + openM && totalMins <= closeH * 60 + closeM;
+};
+
+const getDineinStatus = (todayStr, selectedDate) => {
+  const checkingToday = !selectedDate || selectedDate === todayStr;
+  const { openH, openM, closeH, closeM } = getHoursForDate(selectedDate || todayStr);
+  const openMins  = openH  * 60 + openM;
+  const closeMins = closeH * 60 + closeM;
+
+  let isDineinOpen = true;
+  let reopenLabel  = "";
+
+  if (checkingToday) {
+    const now     = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    isDineinOpen  = nowMins >= openMins && nowMins <= closeMins;
+
+    if (!isDineinOpen) {
+      if (nowMins < openMins) {
+        reopenLabel = `Opens today at ${openH % 12 || 12}:${String(openM).padStart(2,"0")} ${openH < 12 ? "AM" : "PM"}`;
+      } else {
+        const tomorrow        = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowWeekend = tomorrow.getDay() === 0 || tomorrow.getDay() === 6;
+        const [tH, tM]        = tomorrowWeekend ? [8, 0] : [7, 0];
+        reopenLabel = `Opens tomorrow at ${tH % 12 || 12}:${String(tM).padStart(2,"0")} ${tH < 12 ? "AM" : "PM"}`;
+      }
+    }
+  }
+
+  return { isDineinOpen, reopenLabel };
+};
 
 const CartDrawer = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Read table number from QR code URL param e.g. /cart?table=T5
+  const qrTable = searchParams.get("table");
 
   const {
     cartItems,
@@ -15,26 +80,114 @@ const CartDrawer = () => {
     getCartTotal,
     orderType,
     setOrderType,
-    placeOrder,
-    isPlacingOrder,
   } = useCart();
 
-  const [platform, setPlatform]               = useState("");
-  const [userAddressState, setUserAddressState] = useState("");
-  const [userPhoneState, setUserPhoneState]     = useState("");
-  const [preferredTime, setPreferredTime]       = useState("");
+  const [todayStr, setTodayStr] = useState(() => toDateStr(new Date()));
 
-  // ✅ Dine-in fields
-  const [guestName, setGuestName]           = useState("");
-  const [tableNumber, setTableNumber]       = useState("");
+  useEffect(() => {
+    const id = setInterval(() => {
+      const newToday = toDateStr(new Date());
+      setTodayStr((prev) => (prev !== newToday ? newToday : prev));
+    }, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // If arriving via QR code, switch to dine-in automatically
+  useEffect(() => {
+    if (qrTable) setOrderType("dinein");
+  }, [qrTable]);
+
+  const [platform,         setPlatform]        = useState("");
+  const [userAddressState, setUserAddressState] = useState("");
+  const [userPhoneState,   setUserPhoneState]   = useState("");
+
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
+  const [pickupDate,   setPickupDate]   = useState("");
+  const [pickupTime,   setPickupTime]   = useState("");
+  const [dineinDate,   setDineinDate]   = useState("");
+  const [dineinTime,   setDineinTime]   = useState("");
+
+  const [showOutOfHours, setShowOutOfHours] = useState(false);
+
+  const [guestName,      setGuestName]      = useState("");
+  // Use QR table if present, otherwise let user pick manually
+  const [tableNumber,    setTableNumber]    = useState(qrTable || "");
   const [numberOfGuests, setNumberOfGuests] = useState("");
+  const [occupiedTables, setOccupiedTables] = useState([]);
+  const [tableWarning,   setTableWarning]   = useState("");
 
   const totalPrice = getCartTotal();
-
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  useEffect(() => {
+    API.get("/tables")
+      .then((res) => {
+        const tables = res.data?.tables || res.data || [];
+        setOccupiedTables(
+          tables.filter((t) => t.status === "occupied").map((t) => t.tableNumber)
+        );
+      })
+      .catch(() => {});
+
+    socket.emit("join_tables_room");
+    const handleTablesUpdate = ({ tables }) => {
+      setOccupiedTables(
+        tables.filter((t) => t.status === "occupied").map((t) => t.tableNumber)
+      );
+    };
+    socket.on("tables:updated", handleTablesUpdate);
+    return () => socket.off("tables:updated", handleTablesUpdate);
+  }, []);
+
+  // Warn if the QR-detected table is currently occupied
+  useEffect(() => {
+    if (qrTable && occupiedTables.includes(qrTable)) {
+      setTableWarning("This table is currently occupied. Please ask staff for assistance.");
+    } else {
+      setTableWarning("");
+    }
+  }, [qrTable, occupiedTables]);
+
+  const handleDineinTimeChange = (hhmm) => {
+    setDineinTime(hhmm);
+    if (hhmm && !isWithinBusinessHours(hhmm, dineinDate || todayStr)) {
+      setShowOutOfHours(true);
+    }
+  };
+
+  const handleDineinDateChange = (val) => {
+    setDineinDate(val);
+    if (dineinTime && !isWithinBusinessHours(dineinTime, val)) {
+      setShowOutOfHours(true);
+    }
+  };
+
+  const handlePickupTimeBlur = () => {
+    if (!pickupTime) return;
+    const numbers = pickupTime.match(/\d+/g);
+    if (!numbers) return;
+    const minutesFromNow = Math.max(...numbers.map(Number));
+    const selectedDate = pickupDate && pickupDate > todayStr ? pickupDate : null;
+    let base;
+    if (selectedDate) {
+      const { openH, openM } = getHoursForDate(selectedDate);
+      base = new Date(selectedDate + "T00:00:00");
+      base.setHours(openH, openM, 0, 0);
+    } else {
+      base = new Date();
+    }
+    const estimated  = new Date(base.getTime() + minutesFromNow * 60 * 1000);
+    const { closeH, closeM } = getHoursForDate(pickupDate || todayStr);
+    const estimatedMins = estimated.getHours() * 60 + estimated.getMinutes();
+    const closeMins     = closeH * 60 + closeM;
+    if (estimatedMins > closeMins) setShowOutOfHours(true);
+  };
+
+  const { isDineinOpen, reopenLabel } = getDineinStatus(todayStr, dineinDate);
 
   const deliveryPlatforms = [
     { name: "Zomato",  logo: "https://upload.wikimedia.org/wikipedia/commons/7/75/Zomato_logo.png" },
@@ -43,27 +196,34 @@ const CartDrawer = () => {
     { name: "EatSure", logo: eatsureLogo },
   ];
 
+  const isTimeInvalid =
+    orderType === "dinein" && dineinTime && !isWithinBusinessHours(dineinTime, dineinDate || todayStr);
+
   const handleCheckout = () => {
+    if (isTimeInvalid) { setShowOutOfHours(true); return; }
     if (orderType === "delivery" && (!platform || !userAddressState)) {
       alert("Please select a delivery platform and enter your address.");
       return;
     }
-    if (orderType === "dinein" && (!guestName.trim() || !tableNumber.trim() || !numberOfGuests)) {
-      alert("Please enter your name, table number, and number of guests.");
+    if (orderType === "dinein" && (!guestName.trim() || !tableNumber.trim() || !numberOfGuests || tableWarning)) {
+      alert("Please enter your name, select an available table, and number of guests.");
       return;
     }
+
+    const dateByType = { delivery: deliveryDate, pickup: pickupDate, dinein: dineinDate };
+    const timeByType = { delivery: deliveryTime, pickup: pickupTime, dinein: dineinTime };
 
     navigate("/order-summary", {
       state: {
         items: cartItems,
         total: totalPrice,
         details: {
-          type:          orderType,
+          type:           orderType,
           platform,
-          address:       userAddressState,
-          phone:         userPhoneState,
-          time:          preferredTime,
-          // ✅ Dine-in details passed to OrderSummaryPage
+          address:        userAddressState,
+          phone:          userPhoneState,
+          date:           dateByType[orderType],
+          time:           timeByType[orderType],
           guestName,
           tableNumber,
           numberOfGuests: numberOfGuests ? parseInt(numberOfGuests) : undefined,
@@ -72,10 +232,22 @@ const CartDrawer = () => {
     });
   };
 
+  const fieldCls = "w-full p-3 bg-[#1a1a1a] border border-zinc-800 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white hover:border-zinc-600 transition-colors";
+  const labelCls = "text-xs text-gray-500 mb-1.5 block uppercase tracking-widest";
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col">
 
-      {/* ── Page Content ── */}
+      {showOutOfHours && (
+        <OutOfHoursPopup
+          onClose={() => {
+            setShowOutOfHours(false);
+            if (orderType === "pickup") setPickupTime("");
+            else setDineinTime("");
+          }}
+        />
+      )}
+
       <div className="flex-1 pt-28 flex flex-col items-center px-4">
         <h1 className="text-4xl font-extrabold text-orange-600 mb-2 text-center">Your Cart</h1>
         <p className="text-gray-400 mb-10 text-center text-lg">Review Your Delicious Selections</p>
@@ -84,10 +256,8 @@ const CartDrawer = () => {
           <div className="flex flex-col items-center gap-6 mt-20">
             <img src={emptyCartImage} alt="Empty Cart" className="w-40 h-40 grayscale" />
             <h2 className="text-xl font-semibold text-gray-300">Your cart is empty</h2>
-            <button
-              onClick={() => navigate("/menu")}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-medium px-6 py-3 rounded-md mt-4"
-            >
+            <button onClick={() => navigate("/menu")}
+              className="bg-orange-600 hover:bg-orange-700 text-white font-medium px-6 py-3 rounded-md mt-4">
               Browse Menu
             </button>
           </div>
@@ -96,35 +266,24 @@ const CartDrawer = () => {
 
             {/* ── CART ITEMS ── */}
             {cartItems.map((item, index) => (
-              <div
-                key={item._id || item.id || index}
-                className="bg-[#141414] border border-gray-800 rounded-xl shadow p-4 flex items-center justify-between"
-              >
+              <div key={item._id || item.id || index}
+                className="bg-[#141414] border border-gray-800 rounded-xl shadow p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-20 h-20 object-cover rounded-lg border border-gray-700"
-                  />
+                  <img src={item.image} alt={item.name}
+                    className="w-20 h-20 object-cover rounded-lg border border-gray-700" />
                   <div>
                     <h3 className="font-semibold text-lg text-gray-100">{item.name}</h3>
                     <p className="text-orange-500 font-bold">{formatCurrency(item.price * item.quantity)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => updateQuantity(item.productId || item._id, item.quantity - 1)}
-                    className="bg-gray-800 px-2 rounded hover:bg-gray-700 text-white"
-                  >-</button>
+                  <button onClick={() => updateQuantity(item.productId || item._id, item.quantity - 1)}
+                    className="bg-gray-800 px-2 rounded hover:bg-gray-700 text-white">-</button>
                   <span className="px-2">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.productId || item._id, item.quantity + 1)}
-                    className="bg-gray-800 px-2 rounded hover:bg-gray-700 text-white"
-                  >+</button>
-                  <button
-                    onClick={() => removeFromCart(item.productId || item._id)}
-                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 ml-2 text-sm"
-                  >Remove</button>
+                  <button onClick={() => updateQuantity(item.productId || item._id, item.quantity + 1)}
+                    className="bg-gray-800 px-2 rounded hover:bg-gray-700 text-white">+</button>
+                  <button onClick={() => removeFromCart(item.productId || item._id)}
+                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 ml-2 text-sm">Remove</button>
                 </div>
               </div>
             ))}
@@ -134,32 +293,42 @@ const CartDrawer = () => {
               <h3 className="font-semibold text-gray-300 mb-3 uppercase text-sm tracking-widest">Order Type</h3>
 
               <div className="flex gap-4">
-                <button
-                  onClick={() => setOrderType("delivery")}
+                <button onClick={() => setOrderType("delivery")}
                   className={`flex-1 py-2 rounded-lg font-semibold transition ${
                     orderType === "delivery" ? "bg-orange-600 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  }`}
-                >
+                  }`}>
                   Delivery
                 </button>
-                <button
-                  onClick={() => setOrderType("pickup")}
+
+                <button onClick={() => setOrderType("pickup")}
                   className={`flex-1 py-2 rounded-lg font-semibold transition ${
                     orderType === "pickup" ? "bg-orange-600 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  }`}
-                >
+                  }`}>
                   Pickup
                 </button>
-                {/* ✅ Dine-in only — Walk-in is admin-only */}
+
                 <button
-                  onClick={() => setOrderType("dinein")}
-                  className={`flex-1 py-2 rounded-lg font-semibold transition ${
-                    orderType === "dinein" ? "bg-orange-600 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  }`}
-                >
+                  onClick={() => { if (isDineinOpen) setOrderType("dinein"); }}
+                  disabled={!isDineinOpen}
+                  className={`relative flex-1 py-2 rounded-lg font-semibold transition
+                    ${!isDineinOpen
+                      ? "bg-gray-900 border border-gray-700 text-gray-600 cursor-not-allowed"
+                      : orderType === "dinein" ? "bg-orange-600 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    }`}>
                   Dine-in
+                  {!isDineinOpen && (
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-red-700 text-white text-[9px] font-black px-2 py-0.5 rounded-full tracking-widest whitespace-nowrap">
+                      CLOSED
+                    </span>
+                  )}
                 </button>
               </div>
+
+              {!isDineinOpen && (
+                <p className="mt-3 text-center text-xs text-amber-400 font-semibold tracking-wide">
+                  🕐 {reopenLabel} — Delivery & Pickup are available 24/7
+                </p>
+              )}
 
               {/* ── Delivery fields ── */}
               {orderType === "delivery" && (
@@ -167,84 +336,136 @@ const CartDrawer = () => {
                   <h4 className="font-semibold text-gray-300 mb-4">Choose Delivery Partner</h4>
                   <div className="grid grid-cols-2 gap-4">
                     {deliveryPlatforms.map((p) => (
-                      <button
-                        key={p.name}
-                        onClick={() => setPlatform(p.name)}
+                      <button key={p.name} onClick={() => setPlatform(p.name)}
                         className={`flex items-center gap-3 px-4 py-2 rounded-xl border font-semibold transition-all ${
                           platform === p.name
                             ? "bg-orange-900/30 border-orange-500 text-white shadow-lg"
                             : "bg-gray-900 border-gray-800 text-gray-400 hover:bg-gray-800"
-                        }`}
-                      >
+                        }`}>
                         <img src={p.logo} alt={p.name} className="w-6 h-6 object-contain" />
                         <span>{p.name}</span>
                       </button>
                     ))}
                   </div>
-                  <div className="mt-5 space-y-3">
-                    <input
-                      type="text"
+                  <div className="space-y-3">
+                    <input type="text"
                       placeholder="Delivery address (e.g. CBD Belapur, Navi Mumbai)"
                       value={userAddressState}
                       onChange={(e) => setUserAddressState(e.target.value)}
-                      className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Preferred delivery time (e.g. 30–45 minutes)"
-                      value={preferredTime}
-                      onChange={(e) => setPreferredTime(e.target.value)}
-                      className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white"
-                    />
-                    <input
-                      type="text"
-                      placeholder="10-digit phone number"
-                      value={userPhoneState}
-                      onChange={(e) => setUserPhoneState(e.target.value)}
-                      className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white"
-                    />
+                      className={fieldCls} />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Delivery Date</label>
+                        <DatePicker value={deliveryDate} onChange={setDeliveryDate} minDate={todayStr} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Delivery Time</label>
+                        <input type="text" placeholder="e.g. 30–45 minutes"
+                          value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)}
+                          className={fieldCls} />
+                      </div>
+                    </div>
+                    <input type="text" placeholder="10-digit phone number"
+                      value={userPhoneState} onChange={(e) => setUserPhoneState(e.target.value)}
+                      className={fieldCls} />
                   </div>
                 </div>
               )}
 
               {/* ── Pickup fields ── */}
               {orderType === "pickup" && (
-                <div className="mt-5">
-                  <input
-                    type="text"
-                    placeholder="Preferred pickup time (e.g. 40–50 minutes)"
-                    value={preferredTime}
-                    onChange={(e) => setPreferredTime(e.target.value)}
-                    className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white"
-                  />
+                <div className="mt-5 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>Pickup Date</label>
+                      <DatePicker value={pickupDate} onChange={setPickupDate} minDate={todayStr} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Pickup Time</label>
+                      <input type="text" placeholder="e.g. 40–50 minutes"
+                        value={pickupTime} onChange={(e) => setPickupTime(e.target.value)}
+                        onBlur={handlePickupTimeBlur} className={fieldCls} />
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {/* ── Dine-in fields ── ✅ Fixed: was missing && and had ... placeholders */}
+              {/* ── Dine-in fields ── */}
               {orderType === "dinein" && (
                 <div className="mt-5 space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Your name"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Table number"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Number of guests"
-                    min="1"
-                    value={numberOfGuests}
+
+                  {/* QR-detected table banner */}
+                  {qrTable ? (
+                    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
+                      tableWarning
+                        ? "bg-red-900/20 border-red-700/50"
+                        : "bg-green-900/20 border-green-700/50"
+                    }`}>
+                      <span className="text-2xl">{tableWarning ? "🔴" : "🟢"}</span>
+                      <div>
+                        <p className={`text-sm font-bold ${tableWarning ? "text-red-400" : "text-green-400"}`}>
+                          {tableWarning ? "Table Unavailable" : `Table ${qrTable} — Ready`}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {tableWarning || "Detected via QR code on your table"}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Manual table selector — shown only when not arriving via QR */
+                    <div>
+                      <select value={tableNumber}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTableNumber(val);
+                          setTableWarning(val && occupiedTables.includes(val)
+                            ? "This table is currently occupied. Please choose another." : "");
+                        }}
+                        className={fieldCls}>
+                        <option value="">— Select a table —</option>
+                        {TABLE_IDS.map((t) => (
+                          <option key={t} value={t}>
+                            {t} {occupiedTables.includes(t) ? "🔴 Occupied" : "🟢 Available"}
+                          </option>
+                        ))}
+                      </select>
+                      {tableWarning && (
+                        <p className="text-red-400 text-xs mt-1.5 font-semibold flex items-center gap-1">
+                          ⚠️ {tableWarning}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <input type="text" placeholder="Your name"
+                    value={guestName} onChange={(e) => setGuestName(e.target.value)}
+                    className={fieldCls} />
+
+                  <select value={numberOfGuests}
                     onChange={(e) => setNumberOfGuests(e.target.value)}
-                    className="w-full p-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none text-white"
-                  />
+                    className={fieldCls}>
+                    <option value="">— Number of guests —</option>
+                    {GUEST_OPTIONS.map((n) => (
+                      <option key={n} value={n}>{n} {n === 1 ? "Guest" : "Guests"}</option>
+                    ))}
+                  </select>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>Dining Date</label>
+                      <DatePicker value={dineinDate} onChange={handleDineinDateChange} minDate={todayStr} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Dining Time</label>
+                      <TimePicker value={dineinTime} onChange={handleDineinTimeChange} error={isTimeInvalid} />
+                    </div>
+                  </div>
+
+                  {isTimeInvalid && (
+                    <p className="text-red-400 text-xs font-semibold">
+                      ⚠️ Selected time is outside our business hours for that date.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -257,16 +478,18 @@ const CartDrawer = () => {
 
             {/* ── ACTION BUTTONS ── */}
             <div className="flex flex-row gap-4 w-full">
-              <button
-                onClick={clearCart}
-                className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-900/20"
-              >
+              <button onClick={clearCart}
+                className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-red-900/20">
                 Clear Cart
               </button>
               <button
                 onClick={handleCheckout}
-                className="w-full py-4 bg-yellow-400 hover:bg-yellow-500 text-black rounded-xl font-bold text-lg transition-all shadow-lg shadow-yellow-900/20"
-              >
+                disabled={(orderType === "dinein" && !!tableWarning) || !!isTimeInvalid}
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${
+                  (orderType === "dinein" && tableWarning) || isTimeInvalid
+                    ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                    : "bg-yellow-400 hover:bg-yellow-500 text-black shadow-yellow-900/20"
+                }`}>
                 Proceed to Checkout
               </button>
             </div>

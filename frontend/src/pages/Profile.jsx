@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../api/axiosConfig"; 
+import API from "../api/axiosConfig";
 
 const Profile = () => {
   const [data, setData] = useState(null);
@@ -17,7 +17,10 @@ const Profile = () => {
 
       try {
         setLoading(true);
-        const res = await API.get("/auth/profile");
+        // ✅ Explicitly pass auth header — guarantees token is sent
+        const res = await API.get("/auth/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setData(res.data);
       } catch (err) {
         console.error("Profile Fetch Error:", err);
@@ -29,7 +32,7 @@ const Profile = () => {
         setLoading(false);
       }
     };
-    
+
     fetchProfileData();
   }, [navigate]);
 
@@ -46,17 +49,28 @@ const Profile = () => {
 
   if (!data || !data.user) return null;
 
-// Inside your Profile.jsx component
-const user = data?.user || {};
-// Force orders to be an array, even if the backend key is slightly different
-const orders = data?.orders || data?.data?.orders || []; 
-const reservations = data?.reservations || data?.data?.reservations || [];
+  const user         = data?.user || {};
+  const orders       = data?.orders       || data?.data?.orders       || [];
+  const reservations = data?.reservations || data?.data?.reservations || [];
+
+  // Format "YYYY-MM-DD" → "10 Mar 2025"
+  const fmtDate = (str) => {
+    if (!str) return null;
+    const d = new Date(str + "T00:00:00");
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  };
+
+  // Format ISO timestamp → "10 Mar 2025"
+  const fmtTimestamp = (str) => {
+    if (!str) return null;
+    return new Date(str).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] pb-20 pt-10 text-gray-200">
       <div className="mx-auto max-w-6xl px-4">
-        
-        {/* 1. USER DETAILS SECTION */}
+
+        {/* 1. USER DETAILS */}
         <div className="mb-10 overflow-hidden rounded-3xl border border-gray-800 bg-[#141414] shadow-sm">
           <div className="h-32 bg-[#f5c27a]"></div>
           <div className="px-8 pb-8">
@@ -69,7 +83,6 @@ const reservations = data?.reservations || data?.data?.reservations || [];
                 <p className="text-gray-400 font-medium">{user.email}</p>
               </div>
             </div>
-            
             <div className="mt-8 grid gap-4 border-t border-gray-800 pt-8 md:grid-cols-3">
               <div className="rounded-xl bg-[#1d1d1d] p-4 transition-colors hover:bg-[#252525]">
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Phone</p>
@@ -82,8 +95,8 @@ const reservations = data?.reservations || data?.data?.reservations || [];
               <div className="rounded-xl bg-[#1d1d1d] p-4 transition-colors hover:bg-[#252525]">
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Member Since</p>
                 <p className="font-semibold text-gray-200">
-                  {user.createdAt 
-                    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                  {user.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
                     : "Recently"}
                 </p>
               </div>
@@ -92,13 +105,13 @@ const reservations = data?.reservations || data?.data?.reservations || [];
         </div>
 
         <div className="grid gap-10 lg:grid-cols-3">
-          
-          {/* 2. ORDERS SECTION */}
+
+          {/* 2. ORDERS */}
           <div className="lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">My Recent Orders</h3>
               <span className="rounded-full bg-[#f5c27a]/10 px-3 py-1 text-xs font-bold text-[#f5c27a]">
-                {orders?.length || 0} Total
+                {orders.length} Total
               </span>
             </div>
             <div className="overflow-hidden rounded-2xl border border-gray-800 bg-[#141414] shadow-sm">
@@ -107,60 +120,70 @@ const reservations = data?.reservations || data?.data?.reservations || [];
                   <thead className="bg-[#1d1d1d] text-xs uppercase tracking-wider text-gray-500">
                     <tr>
                       <th className="px-6 py-4">Order ID</th>
+                      <th className="px-6 py-4">Type</th>
+                      <th className="px-6 py-4">Date & Time</th>
                       <th className="px-6 py-4">Amount</th>
                       <th className="px-6 py-4">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800">
-  {/* Use the local 'orders' variable we defined earlier for safety */}
-  {orders && orders.length > 0 ? (
-    orders.map((o) => (
-      <tr key={o._id} className="transition-colors hover:bg-[#1d1d1d]/50">
-        <td className="px-6 py-4 font-mono text-sm font-bold text-gray-400">
-          #{o._id ? o._id.slice(-6).toUpperCase() : "N/A"}
-        </td>
-        
-        <td className="px-6 py-4 text-sm font-bold text-white">
-          {/* Use Number() to ensure toFixed doesn't error out on strings */}
-          ₹{Number(o.totalAmount || 0).toFixed(2)}
-        </td>
-
-        <td className="px-6 py-4">
-          <span className={`inline-block rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
-            o.status?.toLowerCase() === 'delivered' 
-              ? 'bg-green-900/30 text-green-400' 
-              : 'bg-orange-900/30 text-orange-400'
-          }`}>
-            {o.status || "Pending"}
-          </span>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="3" className="py-20 text-center text-gray-600">
-        <p className="mb-2 text-3xl">📦</p>
-        <p className="text-sm font-medium">You haven't placed any orders yet.</p>
-      </td>
-    </tr>
-  )}
-</tbody>
-
+                    {orders.length > 0 ? (
+                      orders.map((o) => (
+                        <tr key={o._id} className="transition-colors hover:bg-[#1d1d1d]/50">
+                          <td className="px-6 py-4 font-mono text-sm font-bold text-gray-400">
+                            #{o._id ? o._id.slice(-6).toUpperCase() : "N/A"}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-xs font-black uppercase tracking-widest text-orange-400 bg-orange-900/20 px-2 py-1 rounded-md">
+                              {o.orderType || "—"}
+                            </span>
+                          </td>
+                          {/* ✅ Show scheduledDate + scheduledTime if present, else order creation date */}
+                          <td className="px-6 py-4 text-sm text-gray-400">
+                            {o.scheduledDate
+                              ? <span className="text-yellow-400 font-semibold">{fmtDate(o.scheduledDate)}{o.scheduledTime && /AM|PM/i.test(o.scheduledTime) ? ` · ${o.scheduledTime}` : ""}</span>
+                              : <span className="text-gray-600">{fmtTimestamp(o.createdAt) || "—"}</span>
+                            }
+                          </td>
+                          <td className="px-6 py-4 text-sm font-bold text-white">
+                            ₹{Number(o.totalAmount || 0).toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-block rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
+                              o.status?.toLowerCase() === "delivered"
+                                ? "bg-green-900/30 text-green-400"
+                                : "bg-orange-900/30 text-orange-400"
+                            }`}>
+                              {o.status || "Pending"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="py-20 text-center text-gray-600">
+                          <p className="mb-2 text-3xl">📦</p>
+                          <p className="text-sm font-medium">You haven't placed any orders yet.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
                 </table>
               </div>
             </div>
           </div>
 
-          {/* 3. RESERVATIONS SECTION */}
+          {/* 3. RESERVATIONS */}
           <div className="h-fit">
             <h3 className="mb-4 text-xl font-bold text-white">My Reservations</h3>
             <div className="space-y-4">
-              {reservations && reservations.length > 0 ? (
+              {reservations.length > 0 ? (
                 reservations.map((r) => (
-                  <div key={r._id} className="group relative overflow-hidden rounded-2xl border border-gray-800 bg-[#141414] p-5 shadow-sm transition-all hover:border-[#f5c27a] hover:shadow-md">
+                  <div key={r._id}
+                    className="group relative overflow-hidden rounded-2xl border border-gray-800 bg-[#141414] p-5 shadow-sm transition-all hover:border-[#f5c27a] hover:shadow-md">
                     <div className="mb-3 flex items-center justify-between">
                       <p className="text-sm font-black text-white">
-                        {new Date(r.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        {new Date(r.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                       </p>
                       <span className="rounded-md bg-[#f5c27a]/10 px-2 py-1 text-[10px] font-bold text-[#f5c27a] uppercase">
                         {r.time}
@@ -180,10 +203,10 @@ const reservations = data?.reservations || data?.data?.reservations || [];
               )}
             </div>
           </div>
+
         </div>
       </div>
     </div>
   );
 };
-
 export default Profile;
