@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import API from "../../api/axiosConfig";
 import EmptyState from "../admin/EmptyState";
 import ErrorState from "../admin/ErrorState";
-import WalkInModal from "./Walkinmodal";
+import WalkInModal from "./WalkinModal";
 import { STATUS_STYLES, STATUS_OPTIONS } from "./Constants";
 import { useTableAvailability } from "../../hooks/useTableAvailability";
 
