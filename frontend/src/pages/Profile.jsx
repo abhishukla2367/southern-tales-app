@@ -2,6 +2,21 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
 
+// Convert "HH:MM" (24h) → "06:00 PM" (12h with AM/PM)
+const fmt24hTo12h = (timeStr) => {
+  if (!timeStr) return null;
+  const match = timeStr.match(/(\d+):(\d+)(?:\s*(AM|PM))?/i);
+  if (!match) return timeStr;
+  let h = parseInt(match[1], 10);
+  const m = match[2];
+  // Already has AM/PM — just return as-is
+  if (match[3]) return timeStr;
+  const period = h >= 12 ? "PM" : "AM";
+  if (h === 0)       h = 12;
+  else if (h > 12)   h = h - 12;
+  return `${String(h).padStart(2, "0")}:${m} ${period}`;
+};
+
 const Profile = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -10,14 +25,9 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
+      if (!token) { navigate("/login"); return; }
       try {
         setLoading(true);
-        // ✅ Explicitly pass auth header — guarantees token is sent
         const res = await API.get("/auth/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -32,7 +42,6 @@ const Profile = () => {
         setLoading(false);
       }
     };
-
     fetchProfileData();
   }, [navigate]);
 
@@ -53,14 +62,20 @@ const Profile = () => {
   const orders       = data?.orders       || data?.data?.orders       || [];
   const reservations = data?.reservations || data?.data?.reservations || [];
 
-  // Format "YYYY-MM-DD" → "10 Mar 2025"
+  // Safely extract "YYYY-MM-DD" from either "YYYY-MM-DD" or full ISO "2026-03-07T..."
+  const extractDatePart = (str) => {
+    if (!str) return null;
+    return str.length > 10 ? str.slice(0, 10) : str;
+  };
+
+  // Format "YYYY-MM-DD" or ISO → "7 Mar 2026" without timezone shift
   const fmtDate = (str) => {
     if (!str) return null;
-    const d = new Date(str + "T00:00:00");
+    const d = new Date(extractDatePart(str) + "T00:00:00");
     return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   };
 
-  // Format ISO timestamp → "10 Mar 2025"
+  // Format full ISO timestamp → "7 Mar 2026"
   const fmtTimestamp = (str) => {
     if (!str) return null;
     return new Date(str).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
@@ -138,10 +153,12 @@ const Profile = () => {
                               {o.orderType || "—"}
                             </span>
                           </td>
-                          {/* ✅ Show scheduledDate + scheduledTime if present, else order creation date */}
                           <td className="px-6 py-4 text-sm text-gray-400">
                             {o.scheduledDate
-                              ? <span className="text-yellow-400 font-semibold">{fmtDate(o.scheduledDate)}{o.scheduledTime && /AM|PM/i.test(o.scheduledTime) ? ` · ${o.scheduledTime}` : ""}</span>
+                              ? <span className="text-yellow-400 font-semibold">
+                                  {fmtDate(o.scheduledDate)}
+                                  {o.scheduledTime ? ` · ${fmt24hTo12h(o.scheduledTime)}` : ""}
+                                </span>
                               : <span className="text-gray-600">{fmtTimestamp(o.createdAt) || "—"}</span>
                             }
                           </td>
@@ -183,10 +200,10 @@ const Profile = () => {
                     className="group relative overflow-hidden rounded-2xl border border-gray-800 bg-[#141414] p-5 shadow-sm transition-all hover:border-[#f5c27a] hover:shadow-md">
                     <div className="mb-3 flex items-center justify-between">
                       <p className="text-sm font-black text-white">
-                        {new Date(r.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                        {new Date(extractDatePart(r.date) + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                       </p>
                       <span className="rounded-md bg-[#f5c27a]/10 px-2 py-1 text-[10px] font-bold text-[#f5c27a] uppercase">
-                        {r.time}
+                        {fmt24hTo12h(r.time) || "—"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">

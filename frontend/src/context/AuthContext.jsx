@@ -4,8 +4,6 @@ import API from '../api/axiosConfig';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    // 1. Initialize state IMMEDIATELY from localStorage
-    // This prevents the app from thinking you're logged out on page refresh
     const [user, setUser] = useState(() => {
         const savedUser = localStorage.getItem('user');
         try {
@@ -16,48 +14,45 @@ export const AuthProvider = ({ children }) => {
     });
 
     const [token, setToken] = useState(localStorage.getItem('token') || null);
-    const [loading, setLoading] = useState(true);
+    // Initialize as false — auth is read synchronously from localStorage above,
+    // so there's no async work to wait for before rendering children
+    const [loading, setLoading] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    useEffect(() => {
-        // 2. Validate token/user on app mount
-        const validateAuth = () => {
-            const savedToken = localStorage.getItem('token');
-            const savedUser = localStorage.getItem('user');
-
-            if (!savedToken || !savedUser) {
-                logout(false); // Clean up if data is mismatched
-            }
-            setLoading(false);
-        };
-
-        validateAuth();
-    }, []);
-
-    /**
-     * TASK 5: Login Function
-     * Saves data to storage and updates state
-     */
-    const login = (userData, userToken) => {
-        localStorage.setItem('token', userToken);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        setToken(userToken);
-        setUser(userData);
-    };
-
-    /**
-     * Logout Function
-     * @param {boolean} shouldRedirect - whether to force a page reload
-     */
-    const logout = (shouldRedirect = true) => {
+    // Internal silent clear — used by validateAuth, never sets isLoggingOut
+    const clearAuth = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
         setToken(null);
-        
-        if (shouldRedirect) {
-            window.location.href = '/login'; 
-        }
+    };
+
+    useEffect(() => {
+        const validateAuth = () => {
+            const savedToken = localStorage.getItem('token');
+            const savedUser = localStorage.getItem('user');
+            if (!savedToken || !savedUser) {
+                clearAuth();
+            }
+            setLoading(false);
+        };
+        validateAuth();
+    }, []);
+
+    const login = (userData, userToken) => {
+        localStorage.setItem('token', userToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        setToken(userToken);
+        setUser(userData);
+        setIsLoggingOut(false);
+        window.dispatchEvent(new Event('auth:login'));
+    };
+
+    // User-initiated logout — sets isLoggingOut to suppress AdminRoute redirect flash
+    const logout = () => {
+        setIsLoggingOut(true);
+        window.dispatchEvent(new Event('auth:logout'));
+        clearAuth();
     };
 
     return (
@@ -65,12 +60,11 @@ export const AuthProvider = ({ children }) => {
             user, 
             token, 
             login, 
-            logout, 
+            logout,
             loading,
-            // Requirement #3: Toggle Navbar icons based on this
+            isLoggingOut,
             isLoggedIn: !!token 
         }}>
-            {/* 3. Global Loading Guard to prevent protected route glitches */}
             {!loading ? children : (
                 <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
                     <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#f5c27a] border-t-transparent"></div>

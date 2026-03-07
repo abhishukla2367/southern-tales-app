@@ -7,7 +7,6 @@ import {
   CalendarDays,
   BarChart2,
   LogOut,
-  UserCheck,
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -24,8 +23,8 @@ export default function Sidebar({ active, onChange }) {
   const { logout } = useContext(AuthContext);
 
   const handleLogout = () => {
+    navigate("/", { replace: true });
     logout();
-    navigate("/login", { replace: true });
   };
 
   const handleKeyDown = (e, action) => {

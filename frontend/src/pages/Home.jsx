@@ -12,9 +12,9 @@ const BASE = "https://res.cloudinary.com/db2vju4mv/image/upload";
 
 const IMG = {
   // ⚡ Hero images: Use responsive srcsets — avoid massive 1920px on mobile
-  hero1:   `${BASE}/f_auto,q_auto,w_1280/v1772547194/heroimage_y7tlwp.jpg`,
-  hero2:   `${BASE}/f_auto,q_auto,w_1280/v1772547193/heroimage2_je0bi2.webp`,
-  hero3:   `${BASE}/f_auto,q_auto,w_1280/v1772547195/heroimage3_kdxami.jpg`,
+  hero1:   `${BASE}/f_auto,q_30,w_640/v1772547194/heroimage_y7tlwp.jpg`,
+  hero2:   `${BASE}/f_auto,q_30,w_640/v1772547193/heroimage2_je0bi2.webp`,
+  hero3:   `${BASE}/f_auto,q_30,w_640/v1772547195/heroimage3_kdxami.jpg`,
   // Non-hero: smaller default size
   offer1:  `${BASE}/f_auto,q_auto,w_600/v1772540149/offer1_gmau0i.jpg`,
   offer2:  `${BASE}/f_auto,q_auto,w_600/v1772540152/offer2_q6hebg.webp`,
@@ -29,8 +29,9 @@ const IMG = {
 const srcSet = (publicId) =>
   `${BASE}/f_auto,q_auto,w_400/${publicId} 400w, ${BASE}/f_auto,q_auto,w_800/${publicId} 800w, ${BASE}/f_auto,q_auto,w_1200/${publicId} 1200w`;
 
+// q_30 at 400/640 = ~60-80KB on throttled mobile → LCP < 2.5 s
 const heroSrcSet = (publicId) =>
-  `${BASE}/f_auto,q_auto,w_640/${publicId} 640w, ${BASE}/f_auto,q_auto,w_1280/${publicId} 1280w, ${BASE}/f_auto,q_auto,w_1920/${publicId} 1920w`;
+  `${BASE}/f_auto,q_30,w_400/${publicId} 400w, ${BASE}/f_auto,q_30,w_640/${publicId} 640w, ${BASE}/f_auto,q_50,w_1280/${publicId} 1280w, ${BASE}/f_auto,q_auto,w_1920/${publicId} 1920w`;
 
 // Card image srcset helper — 300w mobile, 600w tablet, 900w desktop
 const cardSrcSet = (versionAndId) =>
@@ -187,7 +188,7 @@ const Reveal = ({ children, dir = "up", delay = "", className = "" }) => {
 const PrimaryBtn = ({ children, onClick }) => (
   <button
     onClick={onClick}
-    className="px-9 py-4 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-semibold text-base tracking-wide shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-1 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border-none"
+    className="px-9 py-4 rounded-full bg-orange-500 hover:bg-orange-600 text-black font-semibold text-base tracking-wide shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:-translate-y-1 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border-none"
   >
     {children}
   </button>
@@ -301,21 +302,6 @@ const Home = () => {
 
   useScrollReveal();
   useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "preload";
-    link.as = "image";
-    link.href = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_1280/v1772547194/heroimage_y7tlwp.jpg";
-    link.setAttribute("imagesrcset", [
-      "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_640/v1772547194/heroimage_y7tlwp.jpg 640w",
-      "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_1280/v1772547194/heroimage_y7tlwp.jpg 1280w",
-      "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_1920/v1772547194/heroimage_y7tlwp.jpg 1920w",
-    ].join(", "));
-    link.setAttribute("imagesizes", "100vw");
-    link.setAttribute("fetchpriority", "high");
-    document.head.appendChild(link);
-    return () => document.head.removeChild(link);
-  }, []);
-  useEffect(() => {
     const t = setInterval(() => setHeroIdx((p) => (p + 1) % heroSlides.length), 3500);
     return () => clearInterval(t);
   }, []);
@@ -344,7 +330,7 @@ const Home = () => {
         {heroSlides.map((slide, i) => (
           <div
             key={i}
-            aria-hidden={i !== heroIdx}
+            aria-hidden={i !== heroIdx ? "true" : undefined}
             className={`absolute inset-0 transition-opacity duration-[1500ms] brightness-[0.55] ${i === heroIdx ? "opacity-100" : "opacity-0"}`}
           >
             {/* ⚡ Use <img> instead of background-image — browser can prioritise LCP */}
@@ -385,7 +371,7 @@ const Home = () => {
         </button>
 
         {/* Dot indicators — accessible */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex gap-2" role="tablist" aria-label="Hero slides">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex gap-1" role="tablist" aria-label="Hero slides">
           {heroSlides.map((slide, i) => (
             <button
               key={i}
@@ -393,8 +379,10 @@ const Home = () => {
               aria-selected={i === heroIdx}
               aria-label={`Go to slide ${i + 1}: ${slide.alt}`}
               onClick={() => setHeroIdx(i)}
-              className={`h-2 rounded-full border-none cursor-pointer transition-all duration-500 ${i === heroIdx ? "w-7 bg-orange-500" : "w-2 bg-white/25"}`}
-            />
+              className="w-11 h-11 flex items-center justify-center border-none bg-transparent cursor-pointer"
+            >
+              <span className={`h-2 rounded-full transition-all duration-500 ${i === heroIdx ? "w-7 bg-orange-500" : "w-2 bg-white/25"}`} />
+            </button>
           ))}
         </div>
 
@@ -429,8 +417,8 @@ const Home = () => {
       {/* ══════════════════════════════════════════════════
           TICKER
       ══════════════════════════════════════════════════ */}
-      <div className="group bg-orange-500 py-3 overflow-hidden whitespace-nowrap" aria-label="Menu highlights">
-        <div className="animate-ticker inline-flex group-hover:[animation-play-state:paused]" aria-hidden="true">
+      <div className="group bg-orange-500 py-3 overflow-hidden whitespace-nowrap" aria-hidden="true">
+        <div className="animate-ticker inline-flex group-hover:[animation-play-state:paused]">
           {[...tickerItems, ...tickerItems].map((item, i) => (
             <span key={i} className="font-display text-xl font-semibold text-white px-8">
               {item} <span className="opacity-50 mx-2">✦</span>
@@ -759,7 +747,7 @@ const Home = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-4 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold text-base tracking-wide flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 cursor-pointer border-none"
+                  className="w-full py-4 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-black font-bold text-base tracking-wide flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 cursor-pointer border-none"
                   aria-busy={submitting}
                 >
                   {submitting
@@ -783,15 +771,15 @@ const Home = () => {
               ))}
               {/* ♿ Google Maps iframe with descriptive title */}
               <div className="rounded-2xl overflow-hidden h-56 border border-white/5">
-                <iframe
-                  title="Southern Tales location map – CBD Belapur, Navi Mumbai"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.583344682022!2d73.036063!3d19.016053!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c3dad636055d%3A0x88989e24345d4c9!2sCBD%20Belapur%2C%20Navi%20Mumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1707480000000!5m2!1sen!2sin"
-                  className="w-full h-full border-0 grayscale invert brightness-[0.8] contrast-[1.2]"
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
+              <iframe
+              title="Southern Tales location map – CBD Belapur, Navi Mumbai"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3772.3010808516046!2d73.03048397497552!3d19.006450082183886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c3601f273e93%3A0x61cd7ee22f689ac5!2sSouthern%20Tales!5e0!3m2!1sen!2sin!4v1772808306990!5m2!1sen!2sin"
+              className="w-full h-full border-0 grayscale invert brightness-[0.8] contrast-[1.2]"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              />
+             </div>
             </Reveal>
           </div>
         </div>

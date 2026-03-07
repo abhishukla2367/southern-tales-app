@@ -1,13 +1,14 @@
 ﻿import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import emptyCartImage from "../assets/images/empty-cart.jpg";
-import eatsureLogo from "../assets/images/eat-sure-logo.png";
 import API from "../api/axiosConfig";
 import socket from "../socket";
-import TimePicker from "./reservations/TimePicker";
-import DatePicker from "./reservations/DatePicker";
-import OutOfHoursPopup from "./reservations/OutOfHoursPopup";
+import TimePicker from "./admin/reservations/TimePicker";
+import DatePicker from "./admin/reservations/DatePicker";
+import OutOfHoursPopup from "./admin/reservations/OutOfHoursPopup";
+
+const EATSURE_LOGO = "https://res.cloudinary.com/db2vju4mv/image/upload/v1772896571/eat-sure-logo_wsbtia.jpg";
+const EMPTY_CART_IMG = "https://res.cloudinary.com/db2vju4mv/image/upload/v1772896571/empty-cart_sbolaw.jpg";
 
 const TABLE_IDS = [
   "T1","T2","T3","T4","T5","T6","T7","T8","T9","T10",
@@ -19,6 +20,33 @@ const GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 const toDateStr = (d) =>
   `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 
+// ── Convert "HH:MM" (24h) → "06:00 PM" (12h with AM/PM) ─────────────────────
+const fmt24hTo12h = (timeStr) => {
+  if (!timeStr) return "";
+  const match = timeStr.match(/(\d+):(\d+)(?:\s*(AM|PM))?/i);
+  if (!match) return timeStr;
+  let h = parseInt(match[1], 10);
+  const m = match[2];
+  if (match[3]) return timeStr; // already has AM/PM
+  const period = h >= 12 ? "PM" : "AM";
+  if (h === 0)     h = 12;
+  else if (h > 12) h = h - 12;
+  return `${String(h).padStart(2, "0")}:${m} ${period}`;
+};
+
+// ── Parse pure 24h "HH:MM" OR "HH:MM AM/PM" → total minutes ─────────────────
+const timeToMins = (val) => {
+  if (!val) return null;
+  const match = val.match(/(\d+):(\d+)(?:\s*(AM|PM))?/i);
+  if (!match) return null;
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const period = (match[3] || "").toUpperCase();
+  if (period === "AM" && h === 12) h = 0;
+  if (period === "PM" && h < 12)  h = h + 12;
+  return h * 60 + m;
+};
+
 const getHoursForDate = (dateStr) => {
   const d = dateStr ? new Date(dateStr + "T00:00:00") : new Date();
   const isWeekend = d.getDay() === 0 || d.getDay() === 6;
@@ -27,11 +55,11 @@ const getHoursForDate = (dateStr) => {
     : { openH: 7,  openM: 0, closeH: 22, closeM: 30 };
 };
 
+// ── Fixed: handles both "HH:MM" and "HH:MM AM/PM" ───────────────────────────
 const isWithinBusinessHours = (val, dateStr) => {
   if (!val) return true;
-  const match = val.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if (!match) return true;
-  const totalMins = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+  const totalMins = timeToMins(val);
+  if (totalMins === null) return true;
   const { openH, openM, closeH, closeM } = getHoursForDate(dateStr);
   return totalMins >= openH * 60 + openM && totalMins <= closeH * 60 + closeM;
 };
@@ -67,10 +95,6 @@ const getDineinStatus = (todayStr, selectedDate) => {
 
 const CartDrawer = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-
-  // Read table number from QR code URL param e.g. /cart?table=T5
-  const qrTable = searchParams.get("table");
 
   const {
     cartItems,
@@ -92,11 +116,6 @@ const CartDrawer = () => {
     return () => clearInterval(id);
   }, []);
 
-  // If arriving via QR code, switch to dine-in automatically
-  useEffect(() => {
-    if (qrTable) setOrderType("dinein");
-  }, [qrTable]);
-
   const [platform,         setPlatform]        = useState("");
   const [userAddressState, setUserAddressState] = useState("");
   const [userPhoneState,   setUserPhoneState]   = useState("");
@@ -111,8 +130,7 @@ const CartDrawer = () => {
   const [showOutOfHours, setShowOutOfHours] = useState(false);
 
   const [guestName,      setGuestName]      = useState("");
-  // Use QR table if present, otherwise let user pick manually
-  const [tableNumber,    setTableNumber]    = useState(qrTable || "");
+  const [tableNumber,    setTableNumber]    = useState("");
   const [numberOfGuests, setNumberOfGuests] = useState("");
   const [occupiedTables, setOccupiedTables] = useState([]);
   const [tableWarning,   setTableWarning]   = useState("");
@@ -142,15 +160,6 @@ const CartDrawer = () => {
     socket.on("tables:updated", handleTablesUpdate);
     return () => socket.off("tables:updated", handleTablesUpdate);
   }, []);
-
-  // Warn if the QR-detected table is currently occupied
-  useEffect(() => {
-    if (qrTable && occupiedTables.includes(qrTable)) {
-      setTableWarning("This table is currently occupied. Please ask staff for assistance.");
-    } else {
-      setTableWarning("");
-    }
-  }, [qrTable, occupiedTables]);
 
   const handleDineinTimeChange = (hhmm) => {
     setDineinTime(hhmm);
@@ -193,9 +202,10 @@ const CartDrawer = () => {
     { name: "Zomato",  logo: "https://upload.wikimedia.org/wikipedia/commons/7/75/Zomato_logo.png" },
     { name: "Swiggy",  logo: "https://upload.wikimedia.org/wikipedia/commons/1/13/Swiggy_logo.png" },
     { name: "Dominos", logo: "https://upload.wikimedia.org/wikipedia/commons/7/74/Dominos_pizza_logo.svg" },
-    { name: "EatSure", logo: eatsureLogo },
+    { name: "EatSure", logo: EATSURE_LOGO },
   ];
 
+  // isTimeInvalid now works correctly with 24h format
   const isTimeInvalid =
     orderType === "dinein" && dineinTime && !isWithinBusinessHours(dineinTime, dineinDate || todayStr);
 
@@ -213,6 +223,10 @@ const CartDrawer = () => {
     const dateByType = { delivery: deliveryDate, pickup: pickupDate, dinein: dineinDate };
     const timeByType = { delivery: deliveryTime, pickup: pickupTime, dinein: dineinTime };
 
+    // Convert 24h → 12h before passing to OrderSummary
+    const rawTime    = timeByType[orderType];
+    const displayTime = fmt24hTo12h(rawTime);
+
     navigate("/order-summary", {
       state: {
         items: cartItems,
@@ -223,7 +237,7 @@ const CartDrawer = () => {
           address:        userAddressState,
           phone:          userPhoneState,
           date:           dateByType[orderType],
-          time:           timeByType[orderType],
+          time:           displayTime,   // ← "06:00 PM" not "18:00"
           guestName,
           tableNumber,
           numberOfGuests: numberOfGuests ? parseInt(numberOfGuests) : undefined,
@@ -254,7 +268,7 @@ const CartDrawer = () => {
 
         {cartItems.length === 0 ? (
           <div className="flex flex-col items-center gap-6 mt-20">
-            <img src={emptyCartImage} alt="Empty Cart" className="w-40 h-40 grayscale" />
+            <img src={EMPTY_CART_IMG} alt="Empty Cart" className="w-40 h-40 grayscale" />
             <h2 className="text-xl font-semibold text-gray-300">Your cart is empty</h2>
             <button onClick={() => navigate("/menu")}
               className="bg-orange-600 hover:bg-orange-700 text-white font-medium px-6 py-3 rounded-md mt-4">
@@ -394,52 +408,32 @@ const CartDrawer = () => {
               {orderType === "dinein" && (
                 <div className="mt-5 space-y-3">
 
-                  {/* QR-detected table banner */}
-                  {qrTable ? (
-                    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
-                      tableWarning
-                        ? "bg-red-900/20 border-red-700/50"
-                        : "bg-green-900/20 border-green-700/50"
-                    }`}>
-                      <span className="text-2xl">{tableWarning ? "🔴" : "🟢"}</span>
-                      <div>
-                        <p className={`text-sm font-bold ${tableWarning ? "text-red-400" : "text-green-400"}`}>
-                          {tableWarning ? "Table Unavailable" : `Table ${qrTable} — Ready`}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {tableWarning || "Detected via QR code on your table"}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Manual table selector — shown only when not arriving via QR */
-                    <div>
-                      <select value={tableNumber}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setTableNumber(val);
-                          setTableWarning(val && occupiedTables.includes(val)
-                            ? "This table is currently occupied. Please choose another." : "");
-                        }}
-                        className={fieldCls}>
-                        <option value="">— Select a table —</option>
-                        {TABLE_IDS.map((t) => (
-                          <option key={t} value={t}>
-                            {t} {occupiedTables.includes(t) ? "🔴 Occupied" : "🟢 Available"}
-                          </option>
-                        ))}
-                      </select>
-                      {tableWarning && (
-                        <p className="text-red-400 text-xs mt-1.5 font-semibold flex items-center gap-1">
-                          ⚠️ {tableWarning}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
                   <input type="text" placeholder="Your name"
                     value={guestName} onChange={(e) => setGuestName(e.target.value)}
                     className={fieldCls} />
+
+                  <div>
+                    <select value={tableNumber}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTableNumber(val);
+                        setTableWarning(val && occupiedTables.includes(val)
+                          ? "This table is currently occupied. Please choose another." : "");
+                      }}
+                      className={fieldCls}>
+                      <option value="">— Select a table —</option>
+                      {TABLE_IDS.map((t) => (
+                        <option key={t} value={t}>
+                          {t} {occupiedTables.includes(t) ? "🔴 Occupied" : "🟢 Available"}
+                        </option>
+                      ))}
+                    </select>
+                    {tableWarning && (
+                      <p className="text-red-400 text-xs mt-1.5 font-semibold flex items-center gap-1">
+                        ⚠️ {tableWarning}
+                      </p>
+                    )}
+                  </div>
 
                   <select value={numberOfGuests}
                     onChange={(e) => setNumberOfGuests(e.target.value)}
@@ -461,10 +455,15 @@ const CartDrawer = () => {
                     </div>
                   </div>
 
+                  {/* Inline warning shown while time is invalid */}
                   {isTimeInvalid && (
-                    <p className="text-red-400 text-xs font-semibold">
-                      ⚠️ Selected time is outside our business hours for that date.
-                    </p>
+                    <div className="flex items-center gap-2 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-2">
+                      <span className="text-amber-400 text-sm">⚠</span>
+                      <p className="text-amber-400 text-xs font-bold">
+                        Selected time is outside business hours
+                        <span className="text-amber-500/70 font-normal ml-1">(Mon–Fri: 7:00 AM – 10:30 PM · Sat–Sun: 8:00 AM – 11:00 PM)</span>
+                      </p>
+                    </div>
                   )}
                 </div>
               )}

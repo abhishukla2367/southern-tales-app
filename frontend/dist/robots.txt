@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# robots.txt — Southern Tales | https://www.southerntales.in
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Allow all search engines to crawl the full public site ───────────────────
+User-agent: *
+Allow: /
+
+# ── Public pages (explicitly allowed) ────────────────────────────────────────
+Allow: /menu
+Allow: /about
+Allow: /gallery
+Allow: /reservation
+Allow: /contactus
+
+# ── Block private / admin / auth routes from being indexed ───────────────────
+Disallow: /admin
+Disallow: /admin/
+Disallow: /profile
+Disallow: /profile/
+Disallow: /cart
+Disallow: /cart/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /otp-verification
+Disallow: /live-orders
+Disallow: /order-summary
+
+# ── Block Vite build assets (not useful for crawlers) ────────────────────────
+Disallow: /assets/
+
+# ── Block API endpoints ───────────────────────────────────────────────────────
+Disallow: /api/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Googlebot — same rules, explicit entry for clarity
+# ─────────────────────────────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /cart/
+Disallow: /login
+Disallow: /register
+Disallow: /api/
+Disallow: /assets/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Bingbot
+# ─────────────────────────────────────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /cart/
+Disallow: /login
+Disallow: /register
+Disallow: /api/
+Disallow: /assets/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Block bad / aggressive bots
+# ─────────────────────────────────────────────────────────────────────────────
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Sitemap location
+# ─────────────────────────────────────────────────────────────────────────────
+Sitemap: https://www.southerntales.in/sitemap.xml

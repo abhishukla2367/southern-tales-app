@@ -273,10 +273,14 @@ const Contact = () => {
               </div>
             </InfoCard>
             <div className="relative rounded-2xl overflow-hidden border border-zinc-800/80 h-64 group">
-              <iframe title="Southern Tales location map – CBD Belapur, Navi Mumbai"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3771.441113264423!2d73.0334803!3d19.0113111!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c3dadf000001%3A0x633d9c88220f8c37!2sCBD%20Belapur%2C%20Navi%20Mumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-                className="w-full h-full border-0 grayscale group-hover:grayscale-0 transition-all duration-700 opacity-80 group-hover:opacity-100"
-                allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              <iframe
+              title="Southern Tales location map – CBD Belapur, Navi Mumbai"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3772.3010808516046!2d73.03048397497552!3d19.006450082183886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c3601f273e93%3A0x61cd7ee22f689ac5!2sSouthern%20Tales!5e0!3m2!1sen!2sin!4v1772808306990!5m2!1sen!2sin"
+              className="w-full h-full border-0 grayscale invert brightness-[0.8] contrast-[1.2]"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
         </div>

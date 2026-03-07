@@ -133,7 +133,7 @@ const Footer = () => {
 
         {/* ── Bottom Bar ── */}
         <div className="border-t border-white/10 pt-8 text-center">
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-400 text-sm">
             © {new Date().getFullYear()}{" "}
             <span className="text-orange-500">Southern Tales</span>. All rights reserved.
           </p>

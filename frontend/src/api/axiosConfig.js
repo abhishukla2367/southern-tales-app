@@ -12,17 +12,11 @@ const API = axios.create({
  */
 API.interceptors.request.use(
   (config) => {
-    // ── JWT ───────────────────────────────────────────────────────────────
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // ── FormData fix ──────────────────────────────────────────────────────
-    // When the body is FormData, delete the Content-Type header entirely.
-    // The browser will then set it automatically as:
-    //   multipart/form-data; boundary=----WebKitFormBoundary...
-    // If we leave "application/json" here, the backend can't parse the body → 400.
     if (config.data instanceof FormData) {
       delete config.headers["Content-Type"];
     }
@@ -45,8 +39,8 @@ API.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      if (window.location.pathname !== "/login" && window.location.pathname !== "/") {
-        window.location.href = "/login";
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
       }
     }
     return Promise.reject(error);

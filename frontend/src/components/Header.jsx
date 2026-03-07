@@ -120,10 +120,13 @@ function CallModal({ onClose }) {
   );
 }
 
+
+
 // ─── Header ───────────────────────────────────────────────────────────────────
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showCallModal, setShowCallModal] = useState(false);
+
 
   const { isLoggedIn, user, logout } = useContext(AuthContext);
   const { cartItems } = useCart();
@@ -143,8 +146,9 @@ const Header = () => {
   }, [isOpen]);
 
   const handleLogout = () => {
-    logout();
-    navigate("/");
+    setIsOpen(false);
+    navigate("/", { replace: true });
+    logout(false);
   };
 
   const goTo = (path) => {
@@ -248,13 +252,26 @@ const Header = () => {
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => goTo("/profile")}
-                    className="flex items-center gap-2 text-white hover:text-[#f5c27a] transition-colors"
-                    aria-label={`View profile for ${user?.name || "user"}`}
-                  >
-                    <UserCircle size={32} className="text-[#f5c27a]" aria-hidden="true" />
-                  </button>
+                  {/* ── Desktop profile / dashboard button ── */}
+                  {user?.role === "admin" ? (
+                    <button
+                      onClick={() => goTo("/admin")}
+                      className="flex items-center gap-2 text-white hover:text-[#f5c27a] transition-colors"
+                      aria-label="Go to admin dashboard"
+                    >
+                      <UserCircle size={32} className="text-[#f5c27a]" aria-hidden="true" />
+                      <span className="text-sm font-bold">Dashboard</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => goTo("/profile")}
+                      className="flex items-center gap-2 text-white hover:text-[#f5c27a] transition-colors"
+                      aria-label={`View profile for ${user?.name || "user"}`}
+                    >
+                      <UserCircle size={32} className="text-[#f5c27a]" aria-hidden="true" />
+                    </button>
+                  )}
+
                   <button
                     onClick={handleLogout}
                     className="px-5 py-2 rounded-full border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-all text-sm font-semibold"
@@ -313,7 +330,7 @@ const Header = () => {
                 tabIndex={isOpen ? 0 : -1}
                 aria-current={pathname === path ? "page" : undefined}
                 className={`flex items-center justify-between py-4 text-lg font-medium border-b border-white/5 no-underline transition-colors duration-200 ${
-                  pathname === path ? "text-[#f5c27a]" : "text-gray-200 hover:text-[#f5c27a]"
+                  pathname === path ? "text-[#f5c27a]" : "text-white hover:text-[#f5c27a]"
                 }`}
               >
                 {label}
@@ -354,17 +371,31 @@ const Header = () => {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
+                    {/* ── Mobile profile / dashboard button ── */}
+                    {user?.role === "admin" ? (
+                      <button
+                        onClick={() => goTo("/admin")}
+                        tabIndex={isOpen ? 0 : -1}
+                        className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl bg-white/5 border border-white/10 font-bold text-white hover:bg-white/10 transition-all"
+                        aria-label="Go to admin dashboard"
+                      >
+                        <UserCircle size={22} className="text-[#f5c27a]" aria-hidden="true" />
+                        Admin Dashboard
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => goTo("/profile")}
+                        tabIndex={isOpen ? 0 : -1}
+                        className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl bg-white/5 border border-white/10 font-bold text-white hover:bg-white/10 transition-all"
+                        aria-label={`View profile for ${user?.name || "user"}`}
+                      >
+                        <UserCircle size={22} className="text-[#f5c27a]" aria-hidden="true" />
+                        {user?.name || "My Profile"}
+                      </button>
+                    )}
+
                     <button
-                      onClick={() => goTo("/profile")}
-                      tabIndex={isOpen ? 0 : -1}
-                      className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl bg-white/5 border border-white/10 font-bold text-white hover:bg-white/10 transition-all"
-                      aria-label={`View profile for ${user?.name || "user"}`}
-                    >
-                      <UserCircle size={22} className="text-[#f5c27a]" aria-hidden="true" />
-                      {user?.name || "My Profile"}
-                    </button>
-                    <button
-                      onClick={() => { handleLogout(); setIsOpen(false); }}
+                      onClick={handleLogout}
                       tabIndex={isOpen ? 0 : -1}
                       className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-500/30 text-red-400 font-semibold text-sm hover:bg-red-500/10 transition-all"
                     >

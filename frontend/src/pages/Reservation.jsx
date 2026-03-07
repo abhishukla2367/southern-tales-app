@@ -2,44 +2,37 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
 import socket from "../socket";
-import TimePicker from "../components/reservations/TimePicker";
+import TimePicker from "../components/admin/reservations/TimePicker";
+import DatePicker from "../components/admin/reservations/DatePicker";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const TABLE_IDS = ["T1","T2","T3","T4","T5","T6","T7","T8","T9","T10",
                    "T11","T12","T13","T14","T15","T16","T17","T18","T19","T20"];
-const WHATSAPP_NUMBER = "919876543210"; 
-const BUSINESS_HOURS = {
-  weekday: { open: "07:00", close: "22:30" }, // Mon–Fri
-  weekend: { open: "08:00", close: "23:00" }, // Sat–Sun
-};
+const WHATSAPP_NUMBER = "919876543210";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-const isWithinBusinessHours = (date, time) => {
-  if (!date || !time) return true;
-  const day = new Date(date).getDay();
-  const isWeekend = day === 0 || day === 6;
-  const hours = isWeekend ? BUSINESS_HOURS.weekend : BUSINESS_HOURS.weekday;
-  return time >= hours.open && time <= hours.close;
+const isWithinBusinessHours = (dateStr, timeStr) => {
+  if (!dateStr || !timeStr) return true;
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const dayOfWeek = date.getDay();
+  const match = timeStr.match(/(\d+):(\d+)(?:\s*(AM|PM))?/i);
+  if (!match) return true;
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const period = (match[3] || "").toUpperCase();
+  if (period === "AM" && h === 12) h = 0;
+  if (period === "PM" && h < 12)  h = h + 12;
+  const totalMinutes = h * 60 + m;
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  return isWeekend
+    ? totalMinutes >= 480 && totalMinutes <= 1380
+    : totalMinutes >= 420 && totalMinutes <= 1350;
 };
 
 const today = new Date().toISOString().split("T")[0];
 
 // ── Sub-components ───────────────────────────────────────────────────────────
-const StatusBadge = ({ status }) => {
-  if (!status) return null;
-  return status === "available" ? (
-    <span className="inline-flex items-center gap-1 text-emerald-400 text-xs mt-1 font-semibold">
-      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-      Available
-    </span>
-  ) : (
-    <span className="inline-flex items-center gap-1 text-red-400 text-xs mt-1 font-semibold">
-      <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-      Not Available
-    </span>
-  );
-};
-
 const StepIndicator = ({ current }) => {
   const steps = ["Your Info", "Table & Time", "Done"];
   return (
@@ -139,45 +132,23 @@ const SuccessScreen = ({ onDone }) => (
 export default function Reservation() {
   const navigate = useNavigate();
 
-  // ── Force TimePicker dialog to stay fully visible ─────────────────────────
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.id = "timepicker-fix";
-    style.innerHTML = `
-      .rc-time-picker-panel,
-      [class*="timepicker"],
-      [class*="TimePicker"],
-      [class*="time-picker"],
-      [role="dialog"] {
-        position: fixed !important;
-        top: 160px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        z-index: 99999 !important;
-        max-height: 80vh !important;
-        overflow-y: auto !important;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => document.getElementById("timepicker-fix")?.remove();
-  }, []);
-  const [step, setStep]                       = useState(1);
-  const [form, setForm]                       = useState({
+  const [step, setStep]                         = useState(1);
+  const [form, setForm]                         = useState({
     customerName: "", customerEmail: "", phone: "",
     date: "", time: "", guests: "", tableNumber: "",
   });
-  const [errors, setErrors]                   = useState({});
-  const [submitting, setSubmitting]           = useState(false);
-  const [success, setSuccess]                 = useState(false);
-  const [occupiedTables, setOccupiedTables]   = useState([]);
-  const [tableWarning, setTableWarning]       = useState("");
-  const [showHoursPopup, setShowHoursPopup]   = useState(false);
-  const [showConfirm, setShowConfirm]         = useState(false);
-  const [bookedSlots, setBookedSlots]         = useState([]);
+  const [errors, setErrors]                     = useState({});
+  const [submitting, setSubmitting]             = useState(false);
+  const [success, setSuccess]                   = useState(false);
+  const [occupiedTables, setOccupiedTables]     = useState([]);
+  const [tableWarning, setTableWarning]         = useState("");
+  const [showHoursPopup, setShowHoursPopup]     = useState(false);
+  const [showConfirm, setShowConfirm]           = useState(false);
+  const [bookedSlots, setBookedSlots]           = useState([]);
   const [fullyBookedDates, setFullyBookedDates] = useState([]);
-  const [dateStatus, setDateStatus]           = useState(null);
-  const [timeStatus, setTimeStatus]           = useState(null);
-  const [loadingAvail, setLoadingAvail]       = useState(false);
+  const [dateStatus, setDateStatus]             = useState(null);
+  const [timeStatus, setTimeStatus]             = useState(null);
+  const [loadingAvail, setLoadingAvail]         = useState(false);
 
   // ── Fetch occupied tables + live socket updates ───────────────────────────
   useEffect(() => {
@@ -188,7 +159,6 @@ export default function Reservation() {
       })
       .catch(() => {});
 
-    // ✅ Only join once — check before emitting
     if (!socket.hasListeners || !socket._callbacks?.["tables:updated"]) {
       socket.emit("join_tables_room");
     }
@@ -198,10 +168,8 @@ export default function Reservation() {
     };
 
     socket.on("tables:updated", handleTablesUpdate);
-    return () => {
-      socket.off("tables:updated", handleTablesUpdate); // ✅ remove specific handler
-    };
-  }, []); // ✅ empty deps — runs once only
+    return () => { socket.off("tables:updated", handleTablesUpdate); };
+  }, []);
 
   // ── Fetch availability when table/date/time changes ──────────────────────
   useEffect(() => {
@@ -229,10 +197,10 @@ export default function Reservation() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const nameMap = {
-    ux_user_fullname: "customerName",
+    ux_user_fullname:      "customerName",
     ux_user_contact_email: "customerEmail",
-    ux_user_phone_num: "phone",
-    ux_guest_count: "guests",
+    ux_user_phone_num:     "phone",
+    ux_guest_count:        "guests",
   };
 
   const handleChange = (e) => {
@@ -248,22 +216,22 @@ export default function Reservation() {
       ? "This table is currently occupied. Please choose another." : "");
   };
 
-  const handleDateChange = (e) => {
-    const date = e.target.value;
-    setForm(f => ({ ...f, date, time: "" }));
+  const handleDateChange = (dateVal) => {
+    setForm(f => ({ ...f, date: dateVal, time: "" }));
     setTimeStatus(null);
     setErrors(err => ({ ...err, date: undefined }));
-    if (!date) { setDateStatus(null); return; }
-    setDateStatus(form.tableNumber && fullyBookedDates.includes(date) ? "unavailable" : "available");
+    if (!dateVal) { setDateStatus(null); return; }
+    setDateStatus(form.tableNumber && fullyBookedDates.includes(dateVal) ? "unavailable" : "available");
   };
 
-  const handleTimeChange = (e) => {
-    const time = e.target.value;
-    setForm(f => ({ ...f, time }));
+  const handleTimeChange = (timeVal) => {
+    setForm(f => ({ ...f, time: timeVal }));
     setErrors(err => ({ ...err, time: undefined }));
-    if (!time || !form.date) { setTimeStatus(null); return; }
-    setTimeStatus(form.tableNumber && bookedSlots.some(s => s.date === form.date && s.time === time)
-      ? "unavailable" : "available");
+    if (!timeVal || !form.date) { setTimeStatus(null); return; }
+    setTimeStatus(
+      form.tableNumber && bookedSlots.some(s => s.date === form.date && s.time === timeVal)
+        ? "unavailable" : "available"
+    );
   };
 
   // ── Validation per step ───────────────────────────────────────────────────
@@ -284,7 +252,7 @@ export default function Reservation() {
     else if (dateStatus === "unavailable") e.date = "Fully booked for this table";
     if (!form.time) e.time = "Time is required";
     else if (timeStatus === "unavailable") e.time = "Slot already booked";
-    if (!isWithinBusinessHours(form.date, form.time)) {
+    else if (!isWithinBusinessHours(form.date, form.time)) {
       setShowHoursPopup(true);
       e.time = "Outside business hours";
     }
@@ -331,6 +299,9 @@ export default function Reservation() {
   `;
   const labelCls = "block text-xs font-bold mb-1.5 text-amber-400 uppercase tracking-widest";
 
+  // Inline outside-hours warning for customer (shown before they try to submit)
+  const outsideHours = form.date && form.time && !isWithinBusinessHours(form.date, form.time);
+
   const isSubmitDisabled = submitting || !!tableWarning
     || dateStatus === "unavailable" || timeStatus === "unavailable";
 
@@ -344,11 +315,10 @@ export default function Reservation() {
         .animate-fade-in  { animation: fade-in 0.4s ease forwards; }
         @keyframes slide-up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
         .animate-slide-up { animation: slide-up 0.35s ease forwards; }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor:pointer; }
       `}</style>
 
-      {showHoursPopup  && <OutOfHoursPopup onClose={() => setShowHoursPopup(false)} />}
-      {showConfirm     && (
+      {showHoursPopup && <OutOfHoursPopup onClose={() => setShowHoursPopup(false)} />}
+      {showConfirm && (
         <ConfirmationModal
           form={form}
           onConfirm={handleSubmit}
@@ -395,7 +365,7 @@ export default function Reservation() {
                 {/* ── STEP 1 — Personal Info ── */}
                 {step === 1 && (
                   <div className="space-y-4">
-                    {/* Hidden honeypot */}
+                    {/* Honeypot */}
                     <input type="text"  name="name"  style={{ display:"none" }} tabIndex="-1" autoComplete="off" />
                     <input type="email" name="email" style={{ display:"none" }} tabIndex="-1" autoComplete="off" />
 
@@ -440,6 +410,7 @@ export default function Reservation() {
                 {/* ── STEP 2 — Table & Time ── */}
                 {step === 2 && (
                   <div className="space-y-4">
+
                     {/* Table picker */}
                     <div>
                       <label htmlFor="res-table" className={labelCls}>
@@ -465,27 +436,42 @@ export default function Reservation() {
                       )}
                     </div>
 
-                    {/* Date */}
+                    {/* Date — custom DatePicker */}
                     <div>
-                      <label htmlFor="res-date" className={labelCls}>Date</label>
-                      <input id="res-date" type="date" value={form.date} min={today}
-                        onChange={handleDateChange}
-                        className={`${inputCls(errors.date)} [color-scheme:dark]`} />
+                      <label className={labelCls}>Date</label>
+                      <DatePicker
+                        value={form.date}
+                        onChange={(d) => handleDateChange(d)}
+                        error={!!errors.date}
+                        minDate={today}
+                      />
                       {errors.date && <p className="text-red-400 text-xs mt-1">{errors.date}</p>}
                     </div>
 
-                    {/* Time */}
+                    {/* Time — custom TimePicker matching WalkInModal logic */}
                     <div>
                       <label className={labelCls}>Time</label>
                       <TimePicker
                         value={form.time}
-                        onChange={(t) => {
-                          handleTimeChange({ target: { value: t } });
-                          setErrors(err => ({ ...err, time: undefined }));
-                        }}
-                        error={errors.time}
+                        onChange={(t) => handleTimeChange(t)}
+                        error={!!errors.time}
                       />
                       {errors.time && <p className="text-red-400 text-xs mt-1">{errors.time}</p>}
+
+                      {/* Inline warning — shown before submit, hard block happens on nextStep */}
+                      {outsideHours ? (
+                        <div className="flex items-center gap-2 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-2 mt-1.5">
+                          <span className="text-amber-400 text-sm">⚠</span>
+                          <p className="text-amber-400 text-xs font-bold">
+                            This time is outside business hours
+                            <span className="text-amber-500/70 font-normal ml-1">(Mon–Fri: 7:00 AM – 10:30 PM · Sat–Sun: 8:00 AM – 11:00 PM)</span>
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-zinc-600 font-mono mt-1">
+                          Mon–Fri: 7:00 AM – 10:30 PM · Sat–Sun: 8:00 AM – 11:00 PM
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}

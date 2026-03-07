@@ -9,15 +9,34 @@ export const CartProvider = ({ children }) => {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Load cart from MongoDB on mount (only if user is logged in)
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    if (localStorage.getItem("token")) {
       fetchCart();
     }
+
+    // auth:logout fires BEFORE token is removed — so API call still works
+    const onLogout = async () => {
+      try {
+        await API.delete("/cart/clear"); // clears server cart while token still valid
+      } catch (e) {
+        console.error("Failed to clear server cart on logout:", e.message);
+      }
+      setCartItems([]);
+      setOrderType("");
+    };
+
+    const onLogin = () => {
+      fetchCart();
+    };
+
+    window.addEventListener("auth:logout", onLogout);
+    window.addEventListener("auth:login", onLogin);
+    return () => {
+      window.removeEventListener("auth:logout", onLogout);
+      window.removeEventListener("auth:login", onLogin);
+    };
   }, []);
 
-  // Fetch cart from MongoDB
   const fetchCart = async () => {
     try {
       setLoading(true);
@@ -31,17 +50,13 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Add item to MongoDB cart
   const addToCart = async (newItem) => {
-    // ✅ FIX: support both _id (MongoDB/Mongoose) and id (REST/lean responses)
     const productId = newItem._id || newItem.id;
-
     if (!productId) {
       console.error("addToCart: item is missing an id field", newItem);
       alert("Could not add item — missing product ID. Please refresh and try again.");
       return;
     }
-
     try {
       const { data } = await API.post("/cart/add", {
         productId,
@@ -53,16 +68,12 @@ export const CartProvider = ({ children }) => {
       setCartItems(data.items || []);
     } catch (error) {
       console.error("Failed to add to cart:", error.message);
-
-      // ✅ Surface the server's error message if available (helps debug 400s)
       const serverMsg = error.response?.data?.message || error.response?.data?.error;
       if (serverMsg) console.error("Server said:", serverMsg);
-
       alert("Failed to add item to cart. Please try again.");
     }
   };
 
-  // Update quantity (local optimistic update — wire up an API call here if needed)
   const updateQuantity = async (id, newQuantity) => {
     if (newQuantity < 1) return removeFromCart(id);
     try {
@@ -78,10 +89,8 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Remove item from MongoDB cart
   const removeFromCart = async (id) => {
     const previousItems = cartItems;
-    // Optimistically remove from UI immediately
     setCartItems((prev) =>
       prev.filter((item) => item.productId !== id && item._id !== id)
     );
@@ -90,12 +99,11 @@ export const CartProvider = ({ children }) => {
       setCartItems(data.items || []);
     } catch (error) {
       console.error("Failed to remove item:", error.message);
-      setCartItems(previousItems); // Revert on failure
+      setCartItems(previousItems);
       alert("Failed to remove item. Please try again.");
     }
   };
 
-  // Clear entire cart from MongoDB
   const clearCart = async () => {
     try {
       await API.delete("/cart/clear");
@@ -103,22 +111,16 @@ export const CartProvider = ({ children }) => {
       setOrderType("");
     } catch (error) {
       console.error("Failed to clear cart:", error.message);
-      // Clear locally even if API fails so UI isn't stuck
       setCartItems([]);
       setOrderType("");
     }
   };
 
-  const getCartTotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + Number(item.price) * item.quantity,
-      0
-    );
-  };
+  const getCartTotal = () =>
+    cartItems.reduce((total, item) => total + Number(item.price) * item.quantity, 0);
 
-  const getCartCount = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  const getCartCount = () =>
+    cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <CartContext.Provider

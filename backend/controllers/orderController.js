@@ -40,7 +40,7 @@ const validateStock = async (items) => {
 /**
  * @desc    Place order — supports delivery, pickup, walkin, dinein
  * @route   POST /api/orders
- * @access  Private (delivery/pickup) | Admin (walkin/dinein)
+ * @access  Private (delivery/pickup/dinein) | Admin (walkin/dinein)
  */
 exports.placeOrder = async (req, res) => {
   try {
@@ -48,6 +48,7 @@ exports.placeOrder = async (req, res) => {
       items, totalAmount, orderType = "delivery",
       deliveryInfo, guestName, tableNumber,
       numberOfGuests, reservationId, paymentMethod, notes,
+      scheduledDate, scheduledTime,               // ✅ read from request
     } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0)
@@ -83,9 +84,13 @@ exports.placeOrder = async (req, res) => {
       paymentStatus: "Unpaid",
       paymentMethod: paymentMethod || "Cash",
       notes,
+      // ✅ Always save scheduled date/time if provided
+      scheduledDate: scheduledDate || null,
+      scheduledTime: scheduledTime || null,
     };
 
-    if (userId && (orderType === "delivery" || orderType === "pickup")) {
+    // ✅ FIX: Save userId for ALL order types (delivery, pickup AND dinein)
+    if (userId) {
       orderData.userId = new mongoose.Types.ObjectId(userId);
     }
 
@@ -104,7 +109,8 @@ exports.placeOrder = async (req, res) => {
 
     const newOrder = await Order.create(orderData);
 
-    if (userId && (orderType === "delivery" || orderType === "pickup")) {
+    // Clear cart for logged-in customers (all types)
+    if (userId) {
       await Cart.findOneAndDelete({ userId: orderData.userId });
     }
 
@@ -134,7 +140,6 @@ exports.getMyOrders = async (req, res) => {
     const currentId = req.user.id || req.user._id;
     const objectId  = new mongoose.Types.ObjectId(currentId);
 
-    // ✅ FIX: Match both ObjectId and string forms of userId
     const orders = await Order.find({
       userId: { $in: [objectId, currentId.toString()] },
     }).sort({ createdAt: -1 });
@@ -185,8 +190,6 @@ exports.updateOrderStatus = async (req, res) => {
     if (!status || !validStatuses.includes(status))
       return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
 
-    // ✅ FIX: .save() instead of findByIdAndUpdate — no deprecation warnings,
-    //    works on every Mongoose version
     const order = await Order.findById(id);
     if (!order)
       return res.status(404).json({ success: false, message: "Order not found." });
@@ -219,7 +222,6 @@ exports.updateOrderPayment = async (req, res) => {
     if (!paymentStatus || !validPaymentStatuses.includes(paymentStatus))
       return res.status(400).json({ success: false, message: "Invalid payment status." });
 
-    // ✅ FIX: .save() instead of findByIdAndUpdate — no deprecation warnings
     const order = await Order.findById(id);
     if (!order)
       return res.status(404).json({ success: false, message: "Order not found." });
@@ -250,7 +252,6 @@ exports.restockItem = async (req, res) => {
   try {
     const collection = mongoose.connection.db.collection("menu");
 
-    // ✅ FIX: Try both ObjectId and string so _id type mismatch doesn't silently fail
     const objectId = mongoose.Types.ObjectId.isValid(id)
       ? new mongoose.Types.ObjectId(id)
       : null;

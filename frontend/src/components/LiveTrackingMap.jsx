@@ -1,27 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 /* Fix default marker icons (important for React) */
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+/* Re-centers the map whenever delivery position changes */
+const RecenterMap = ({ position }) => {
+  const map = useMap();
+  useEffect(() => {
+    map.setView(position);
+  }, [position]);
+  return null;
+};
+
 const LiveTrackingMap = () => {
-  const customerLocation = [28.6139, 77.209]; // Delhi example
+  // Southern Tales — Shop No.9,10,11, Sector 15, CBD Belapur, Navi Mumbai
+  const restaurantLocation = [19.006450, 73.030484];
 
   const [deliveryLocation, setDeliveryLocation] = useState([
-    28.6239,
-    77.219,
+    19.010450,
+    73.034484,
   ]);
 
-  // Simulate live movement
+  // Simulate live movement toward the restaurant
   useEffect(() => {
     const interval = setInterval(() => {
       setDeliveryLocation((prev) => [
@@ -42,7 +50,7 @@ const LiveTrackingMap = () => {
       <div className="h-[280px] rounded-xl overflow-hidden border">
         <MapContainer
           center={deliveryLocation}
-          zoom={14}
+          zoom={15}
           scrollWheelZoom={false}
           style={{ height: "100%", width: "100%" }}
         >
@@ -51,9 +59,12 @@ const LiveTrackingMap = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Customer */}
-          <Marker position={customerLocation}>
-            <Popup>Your location</Popup>
+          {/* Re-center map as delivery moves */}
+          <RecenterMap position={deliveryLocation} />
+
+          {/* Southern Tales Restaurant */}
+          <Marker position={restaurantLocation}>
+            <Popup>🍽️ Southern Tales Restaurant<br />Sector 15, CBD Belapur, Navi Mumbai</Popup>
           </Marker>
 
           {/* Delivery Partner */}

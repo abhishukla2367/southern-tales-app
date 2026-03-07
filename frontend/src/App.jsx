@@ -14,7 +14,7 @@ import CartDrawer from "./components/CartDrawer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
-import AllReviews from "./pages/AllReviews";
+const AllReviews = lazy(() => import("./pages/AllReviews"));
 
 // ─── Lazy-loaded pages (code-split per route) ────────────────────────────
 const Home              = lazy(() => import("./pages/Home"));
@@ -35,10 +35,9 @@ const Profile           = lazy(() => import("./pages/Profile"));
 // ─── Admin pages (heavy — only loaded if admin visits) ───────────────────
 const AdminDashboard    = lazy(() => import("./components/admin/AdminDashboard"));
 const MenuList          = lazy(() => import("./components/admin/menu/MenuList"));
-const OrdersList        = lazy(() => import("./components/orders/OrdersList"));
-const ReservationsList  = lazy(() => import("./components/reservations/ReservationsList"));
-const ReportsPage       = lazy(() => import("./pages/admin/ReportsPage"));
-const LiveOrders        = lazy(() => import("./pages/Liveorders"));
+const OrdersList        = lazy(() => import("./components/admin/orders/OrdersList"));
+const ReservationsList  = lazy(() => import("./components/admin/reservations/ReservationsList"));
+const ReportsPage       = lazy(() => import("./components/admin/reports/ReportsPage"));
 
 // ─── Minimal full-page loading fallback ──────────────────────────────────
 const PageLoader = () => (
@@ -53,14 +52,22 @@ const PageLoader = () => (
 
 /* ── Admin Route Protector ── */
 const AdminRoute = ({ children }) => {
-  const { user, loading } = useContext(AuthContext);
+  const { user, loading, isLoggingOut } = useContext(AuthContext);
   if (loading)
     return (
       <div className="h-screen flex items-center justify-center bg-black text-white">
         Loading...
       </div>
     );
-  return user && user.role === "admin" ? children : <Navigate to="/login" />;
+  // During logout, stay silent — Header/Sidebar navigate() handles the redirect
+  if (isLoggingOut) return null;
+  return user && user.role === "admin" ? children : <Navigate to="/login" replace />;
+};
+
+/* ── Profile Route — redirects admins to /admin ── */
+const ProfileRoute = () => {
+  const { user } = useContext(AuthContext);
+  return user?.role === "admin" ? <Navigate to="/admin" /> : <Profile />;
 };
 
 /* ── Scroll to top on every route change ── */
@@ -106,10 +113,10 @@ export default function App() {
               <Routes>
                 {/* PUBLIC ROUTES */}
                 <Route path="/"          element={<Home />} />
-                <Route path="/menu"      element={<Menu />} />
+                <Route path="/menu"      element={<ProtectedRoute><Menu /></ProtectedRoute>} />
                 <Route path="/about"     element={<AboutUs />} />
                 <Route path="/contactus" element={<ContactUs />} />
-                <Route path="/reviews" element={<AllReviews />} />
+                <Route path="/reviews"   element={<AllReviews />} />
                 <Route path="/gallery"   element={<Gallery />} />
                 <Route path="/cart"      element={<CartDrawer />} />
 
@@ -123,7 +130,7 @@ export default function App() {
                 {/* PROTECTED USER ROUTES */}
                 <Route path="/reservation"   element={<ProtectedRoute><Reservation /></ProtectedRoute>} />
                 <Route path="/order-summary" element={<ProtectedRoute><OrderSummaryPage /></ProtectedRoute>} />
-                <Route path="/profile"       element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/profile"       element={<ProtectedRoute><ProfileRoute /></ProtectedRoute>} />
 
                 {/* PROTECTED ADMIN ROUTES */}
                 <Route path="/admin"              element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -131,7 +138,6 @@ export default function App() {
                 <Route path="/admin/orders"       element={<AdminRoute><OrdersList /></AdminRoute>} />
                 <Route path="/admin/reservations" element={<AdminRoute><ReservationsList /></AdminRoute>} />
                 <Route path="/admin/reports"      element={<AdminRoute><ReportsPage /></AdminRoute>} />
-                <Route path="/admin/live-orders"  element={<AdminRoute><LiveOrders /></AdminRoute>} />
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" />} />

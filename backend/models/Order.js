@@ -9,71 +9,41 @@ const OrderSchema = new mongoose.Schema(
       index: true,
     },
 
-    // delivery = online delivery
-    // pickup   = customer picks up from restaurant
-    // walkin   = customer walks in without reservation
-    // dinein   = customer had a reservation and is now ordering
     orderType: {
       type: String,
       default: "delivery",
       enum: ["delivery", "pickup", "walkin", "dinein"],
     },
 
-    // ── Walk-in / Dine-in fields ──────────────────────────────────────────
-    guestName: {
-      type: String, // Used when no userId (walk-in / dine-in)
-    },
+    guestName:      { type: String },
+    tableNumber:    { type: String },
+    numberOfGuests: { type: Number, min: [1, "At least 1 guest required"] },
 
-    tableNumber: {
-      type: String, // Table number for walkin / dinein
-    },
-
-    numberOfGuests: {
-      type: Number,
-      min: [1, "At least 1 guest required"],
-    },
-
-    // ── Dine-in only — links to existing reservation ──────────────────────
     reservationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Reservation",
       required: false,
     },
 
-    // ── Order Items ───────────────────────────────────────────────────────
+    // ✅ New — scheduled date & time for future / pre-orders
+    scheduledDate: { type: String, default: null }, // "YYYY-MM-DD"
+    scheduledTime: { type: String, default: null }, // "HH:MM" or "30–45 minutes"
+
     items: [
       {
-        productId: {
-          type: mongoose.Schema.Types.Mixed,
-          ref: "Menu",
-        },
-        name: {
-          type: String,
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: [1, "Quantity cannot be less than 1"],
-        },
-        price: {
-          type: Number,
-          required: true,
-          min: [0, "Price cannot be negative"],
-        },
-        unit: {
-          type: String, // plate, bowl, glass, pcs — from Menu collection
-        },
+        productId: { type: mongoose.Schema.Types.Mixed, ref: "Menu" },
+        name:      { type: String, required: true },
+        quantity:  { type: Number, required: true, min: [1, "Quantity cannot be less than 1"] },
+        price:     { type: Number, required: true, min: [0, "Price cannot be negative"] },
+        unit:      { type: String },
       },
     ],
 
-    // ── Delivery Info (delivery orders only) ─────────────────────────────
     deliveryInfo: {
       address: { type: String },
       phone:   { type: String },
     },
 
-    // ── Financials ────────────────────────────────────────────────────────
     totalAmount: {
       type: Number,
       required: true,
@@ -92,27 +62,16 @@ const OrderSchema = new mongoose.Schema(
       enum: ["Unpaid", "Paid", "Refunded"],
     },
 
-    // ── Order Status ──────────────────────────────────────────────────────
     status: {
       type: String,
       default: "Pending",
       enum: {
-        values: [
-          "Pending",
-          "Processing",
-          "Preparing",
-          "Delivered",
-          "Completed",
-          "Cancelled",
-        ],
+        values: ["Pending", "Processing", "Preparing", "Delivered", "Completed", "Cancelled"],
         message: "{VALUE} is not a supported order status",
       },
     },
 
-    // ── Optional Notes ────────────────────────────────────────────────────
-    notes: {
-      type: String,
-    },
+    notes: { type: String },
   },
   { timestamps: true }
 );

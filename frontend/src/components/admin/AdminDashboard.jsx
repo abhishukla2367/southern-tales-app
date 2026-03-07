@@ -2,13 +2,13 @@ import React, { useState, useContext, useRef, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import DashboardCards from "./DashboardCards";
 import MenuList from "./menu/MenuList";
-import OrdersList from "../orders/OrdersList";
-import ReservationsList from "../reservations/ReservationsList";
-import ReportsPage from "../../pages/admin/ReportsPage";
+import OrdersList from "./orders/OrdersList";
+import ReservationsList from "./reservations/ReservationsList";
+import ReportsPage from "./reports/ReportsPage";
 import { AuthContext } from "../../context/AuthContext";
 import {
   ShoppingBag, CalendarCheck, AlertTriangle, CheckCircle,
-  ArrowLeft, Filter, Activity, Clock, Wifi, RefreshCw,
+  ArrowLeft, Filter, Activity, Clock, Wifi, RefreshCw, Download,
 } from "lucide-react";
 
 const ALL_ACTIVITY = [
@@ -118,9 +118,11 @@ function LiveClock() {
     return () => clearInterval(id);
   }, []);
 
-  const timeStr = now.toLocaleTimeString("en-IN", {
-    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true,
-  });
+  const h      = now.getHours();
+  const mm     = String(now.getMinutes()).padStart(2, "0");
+  const ss     = String(now.getSeconds()).padStart(2, "0");
+  const period = h < 12 ? "AM" : "PM";
+  const timeStr = `${String(h).padStart(2, "0")}:${mm}:${ss} ${period}`;
   const dateStr = now.toLocaleDateString("en-IN", {
     weekday: "short", day: "numeric", month: "short", year: "numeric",
   });
@@ -284,7 +286,8 @@ export default function AdminDashboard() {
   const [scrolled, setScrolled]         = useState(false);
 
   const { user, loading } = useContext(AuthContext);
-  const mainRef = useRef(null);
+  const mainRef           = useRef(null);
+  const downloadReportRef = useRef(null);
 
   useEffect(() => {
     const el = mainRef.current;
@@ -294,16 +297,28 @@ export default function AdminDashboard() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Clear the download ref on tab switch so stale handlers don't linger
+  useEffect(() => {
+    downloadReportRef.current = null;
+  }, [activeTab]);
+
   const getInitials = (name = "") =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  // Unmount + remount the current tab's component — works for ALL tabs including dashboard
   const handleRefresh = () => {
     if (refreshing) return;
     setRefreshing(true);
     const current = activeTab;
     setActiveTab("__refresh__");
     setTimeout(() => { setActiveTab(current); setRefreshing(false); }, 600);
+  };
+
+  const handleDownloadReport = () => {
+    if (typeof downloadReportRef.current === "function") {
+      downloadReportRef.current();
+    } else {
+      alert("No report available for this tab yet.");
+    }
   };
 
   if (loading)
@@ -316,13 +331,12 @@ export default function AdminDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "menu":         return <MenuList />;
-      case "orders":       return <OrdersList />;
-      case "reservations": return <ReservationsList />;
-      case "walkin":       return <WalkInReservation />;
-      case "reports":      return <ReportsPage />;
+      case "menu":         return <MenuList         downloadReportRef={downloadReportRef} />;
+      case "orders":       return <OrdersList       downloadReportRef={downloadReportRef} />;
+      case "reservations": return <ReservationsList downloadReportRef={downloadReportRef} />;
+      case "reports":      return <ReportsPage      downloadReportRef={downloadReportRef} />;
       case "__refresh__":  return null;
-      default:             return <DashboardCards />;
+      default:             return <DashboardCards   downloadReportRef={downloadReportRef} />;
     }
   };
 
@@ -403,7 +417,7 @@ export default function AdminDashboard() {
         {/* SCROLLABLE MAIN */}
         <main ref={mainRef} className="flex-1 p-6 md:p-10 overflow-y-auto bg-[#0a0a0a]">
 
-          {/* Title row — Refresh Now button always visible on every tab */}
+          {/* Title row */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
             <div>
               <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] mb-2 text-[#f5c27a]">
@@ -415,15 +429,31 @@ export default function AdminDashboard() {
               </h1>
             </div>
 
-            {/* Single Refresh Now — works for every tab including dashboard */}
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-3 px-8 py-4 rounded-xl text-base font-black bg-[#181818] border-2 border-[#2a2a2a] text-[#f1f1f1] hover:border-[#f5c27a] hover:text-[#f5c27a] hover:bg-[#1a1a1a] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            >
-              <RefreshCw size={20} className={refreshing ? "animate-spin text-[#f5c27a]" : ""} />
-              {refreshing ? "Refreshing..." : "Refresh Now"}
-            </button>
+            {/* Action buttons */}
+            <div className="flex items-center gap-2">
+
+              {/* Download Report — only on Orders, Reservations, Reports tabs */}
+              {["orders", "reservations", "reports"].includes(activeTab) && (
+                <button
+                  onClick={handleDownloadReport}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-[#181818] border border-[#2a2a2a] text-[#aaa] hover:border-[#6ee7b7] hover:text-[#6ee7b7] hover:bg-[#1a1a1a] active:scale-95 transition-all"
+                >
+                  <Download size={15} />
+                  Download Report
+                </button>
+              )}
+
+              {/* Refresh Now */}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-[#181818] border border-[#2a2a2a] text-[#aaa] hover:border-[#f5c27a] hover:text-[#f5c27a] hover:bg-[#1a1a1a] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw size={15} className={refreshing ? "animate-spin text-[#f5c27a]" : ""} />
+                {refreshing ? "Refreshing..." : "Refresh Now"}
+              </button>
+
+            </div>
           </div>
 
           <div>{renderContent()}</div>

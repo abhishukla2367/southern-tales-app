@@ -309,3 +309,41 @@ exports.deleteReservation = async (req, res) => {
         res.status(500).json({ error: "Failed to delete reservation", details: err.message });
     }
 };
+/**
+ * @desc    Get booked slots + fully booked dates for a specific table
+ * @route   GET /api/reservations/availability?tableNumber=T4
+ * @access  Private
+ */
+exports.getAvailability = async (req, res) => {
+  try {
+    const { tableNumber } = req.query;
+    if (!tableNumber) {
+      return res.status(400).json({ message: "tableNumber query param is required" });
+    }
+
+    const reservations = await Reservation.find({
+      tableNumber,
+      status: { $nin: ["Cancelled"] },
+    }).select("date time");
+
+    const bookedSlots = reservations
+      .filter((r) => r.date && r.time)
+      .map((r) => ({
+        date: typeof r.date === "string" ? r.date.slice(0, 10) : r.date.toISOString().slice(0, 10),
+        time: r.time,
+      }));
+
+    const dateCounts = {};
+    bookedSlots.forEach(({ date }) => {
+      dateCounts[date] = (dateCounts[date] || 0) + 1;
+    });
+    const fullyBookedDates = Object.entries(dateCounts)
+      .filter(([, count]) => count >= 3)
+      .map(([date]) => date);
+
+    res.json({ bookedSlots, fullyBookedDates });
+  } catch (err) {
+    console.error("getAvailability error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

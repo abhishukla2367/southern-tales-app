@@ -28,10 +28,25 @@
     <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_32,h_32,c_fill/v1772560792/southern-tales-logo_knrfgm.jpg" />
     <link rel="apple-touch-icon" href="https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_180,h_180,c_fill/v1772560792/southern-tales-logo_knrfgm.jpg" />
 
+    <!-- Fonts: preconnect + swap display to avoid FOIT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="preconnect" href="https://img.youtube.com" crossorigin />
     <link rel="dns-prefetch" href="https://www.youtube.com" />
-    <link rel="dns-prefetch" href="https://maps.googleapis.com">
+    <link rel="dns-prefetch" href="https://maps.googleapis.com" />
+
+    <!-- ⚡ LCP: preload hero — q_30 at mobile keeps file ~60-80KB on throttled Lighthouse -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_30,w_640/v1772547194/heroimage_y7tlwp.jpg"
+      imagesrcset="https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_30,w_400/v1772547194/heroimage_y7tlwp.jpg 400w, https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_30,w_640/v1772547194/heroimage_y7tlwp.jpg 640w, https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_50,w_1280/v1772547194/heroimage_y7tlwp.jpg 1280w, https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_1920/v1772547194/heroimage_y7tlwp.jpg 1920w"
+      imagesizes="100vw"
+      fetchpriority="high"
+    />
 
     <script type="application/ld+json">
       {
