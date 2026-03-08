@@ -22,9 +22,10 @@ module.exports = {
           from: { opacity: "0", transform: "translateY(28px)" },
           to:   { opacity: "1", transform: "none" },
         },
+        // translateX IS GPU-composited — fixes "non-composited animation" warning
         shimmer: {
-          "0%":   { backgroundPosition: "-200% center" },
-          "100%": { backgroundPosition:  "200% center" },
+          "0%":   { transform: "translateX(-200%)" },
+          "100%": { transform: "translateX(200%)" },
         },
         floatY: {
           "0%, 100%": { transform: "translateY(0) rotate(-1deg)" },

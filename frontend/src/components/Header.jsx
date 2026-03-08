@@ -8,7 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
 // ─── CLOUDINARY LOGO CONFIG ──────────────────────────────────────────────────
-const LOGO_URL = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_200/v1772560792/southern-tales-logo_knrfgm.jpg";
+const LOGO_URL = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_120,e_colorize,co_white,e_brightness:50/v1772948791/southern_tales_logo_imwqjv.png";
 
 const PHONE = "+919876543210";
 const dial = () => window.open(`tel:${PHONE}`, "_self");
@@ -88,7 +88,7 @@ function CallModal({ onClose }) {
               <Clock size={16} className="text-[#f5c27a]" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Hours of Operation</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Hours of Operation</p>
               <p className="text-sm font-bold text-white">Mon – Fri &nbsp; 11:00 AM – 10:00 PM</p>
               <p className="text-sm font-bold text-white">Sat – Sun &nbsp; 10:00 AM – 11:00 PM</p>
             </div>
@@ -99,7 +99,7 @@ function CallModal({ onClose }) {
               <MapPin size={16} className="text-[#f5c27a]" />
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Location</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Location</p>
               <p className="text-sm font-bold text-white">Southern Tales Restaurant</p>
               <p className="text-xs text-gray-400 mt-0.5">CBD Belapur, Navi Mumbai, Maharashtra</p>
             </div>
@@ -173,7 +173,7 @@ const Header = () => {
               height={56}
               loading="eager"
               fetchpriority="high"
-              className="w-14 h-14 rounded-full object-cover ring-2 ring-[#f5c27a]/30"
+              className="w-14 h-14 rounded-full object-cover ring-2 ring-[#f5c27a] filter brightness-0 invert"
             />
             <div className="flex flex-col leading-tight">
               <span className="text-2xl font-black text-white tracking-tight">
@@ -318,8 +318,8 @@ const Header = () => {
           id="mobile-menu"
           aria-label="Mobile navigation"
           aria-hidden={!isOpen}
-          className={`fixed inset-0 top-[80px] z-40 lg:hidden bg-[#1a1208]/98 backdrop-blur-md transition-transform duration-300 ease-in-out overflow-y-auto ${
-            isOpen ? "translate-x-0" : "translate-x-full"
+          className={`fixed inset-0 top-[80px] z-40 lg:hidden bg-[#1a1208]/98 backdrop-blur-md overflow-y-auto transition-all duration-300 ease-in-out ${
+            isOpen ? "translate-x-0 opacity-100 pointer-events-auto" : "translate-x-full opacity-0 pointer-events-none invisible"
           }`}
         >
           <div className="px-6 py-8 space-y-1">

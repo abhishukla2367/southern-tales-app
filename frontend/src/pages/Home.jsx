@@ -5,17 +5,12 @@ import {
   Send, MapPin, Clock, CheckCircle2, ChevronDown, Play,
 } from "lucide-react";
 
-/* ─────────────────────────────────────────────────────────────────
-   CLOUDINARY CONFIG
-───────────────────────────────────────────────────────────────── */
 const BASE = "https://res.cloudinary.com/db2vju4mv/image/upload";
 
 const IMG = {
-  // ⚡ Hero images: Use responsive srcsets — avoid massive 1920px on mobile
-  hero1:   `${BASE}/f_auto,q_30,w_640/v1772547194/heroimage_y7tlwp.jpg`,
-  hero2:   `${BASE}/f_auto,q_30,w_640/v1772547193/heroimage2_je0bi2.webp`,
-  hero3:   `${BASE}/f_auto,q_30,w_640/v1772547195/heroimage3_kdxami.jpg`,
-  // Non-hero: smaller default size
+  hero1:   `${BASE}/f_auto,e_blur:800,q_10,w_640/v1772547194/heroimage_y7tlwp.jpg`,
+  hero2:   `${BASE}/f_auto,e_blur:800,q_10,w_640/v1772547193/heroimage2_je0bi2.webp`,
+  hero3:   `${BASE}/f_auto,e_blur:800,q_10,w_640/v1772547195/heroimage3_kdxami.jpg`,
   offer1:  `${BASE}/f_auto,q_auto,w_600/v1772540149/offer1_gmau0i.jpg`,
   offer2:  `${BASE}/f_auto,q_auto,w_600/v1772540152/offer2_q6hebg.webp`,
   offer3:  `${BASE}/f_auto,q_auto,w_600/v1772540153/offer3_dossgi.jpg`,
@@ -25,19 +20,19 @@ const IMG = {
   about:   `${BASE}/f_auto,q_auto,w_800/v1772540285/our-story_izc7sx.webp`,
 };
 
-// Responsive srcset helper for Cloudinary
-const srcSet = (publicId) =>
-  `${BASE}/f_auto,q_auto,w_400/${publicId} 400w, ${BASE}/f_auto,q_auto,w_800/${publicId} 800w, ${BASE}/f_auto,q_auto,w_1200/${publicId} 1200w`;
+// Extracts only "v1234567/filename.jpg" from any Cloudinary URL
+const pubId = (url) => url.match(/(v\d+\/.+)/)[1];
 
-// q_30 at 400/640 = ~60-80KB on throttled mobile → LCP < 2.5 s
 const heroSrcSet = (publicId) =>
-  `${BASE}/f_auto,q_30,w_400/${publicId} 400w, ${BASE}/f_auto,q_30,w_640/${publicId} 640w, ${BASE}/f_auto,q_50,w_1280/${publicId} 1280w, ${BASE}/f_auto,q_auto,w_1920/${publicId} 1920w`;
+  `${BASE}/f_auto,e_blur:800,q_10,w_400/${publicId} 400w, ` +
+  `${BASE}/f_auto,e_blur:800,q_10,w_640/${publicId} 640w, ` +
+  `${BASE}/f_auto,e_blur:600,q_20,w_960/${publicId} 960w, ` +
+  `${BASE}/f_auto,q_60,w_1280/${publicId} 1280w, ` +
+  `${BASE}/f_auto,q_auto,w_1920/${publicId} 1920w`;
 
-// Card image srcset helper — 300w mobile, 600w tablet, 900w desktop
-const cardSrcSet = (versionAndId) =>
-  `${BASE}/f_auto,q_auto,w_300/${versionAndId} 300w, ${BASE}/f_auto,q_auto,w_600/${versionAndId} 600w, ${BASE}/f_auto,q_auto,w_900/${versionAndId} 900w`;
+const cardSrcSet = (id) =>
+  `${BASE}/f_auto,q_60,w_300/${id} 300w, ${BASE}/f_auto,q_60,w_600/${id} 600w, ${BASE}/f_auto,q_60,w_900/${id} 900w`;
 
-// Gallery image srcset helper
 const galSrcSet = (url) => {
   const id = url.split('/upload/')[1];
   return `${BASE}/f_auto,q_auto,w_400/${id} 400w, ${BASE}/f_auto,q_auto,w_800/${id} 800w`;
@@ -215,7 +210,7 @@ const CounterStat = ({ target, suffix, label }) => {
   return (
     <div ref={ref} className="text-center">
       <div className="font-display text-5xl font-bold text-orange-500 leading-none">{count}{suffix}</div>
-      <p className="text-xs tracking-[3px] uppercase text-gray-500 mt-2">{label}</p>
+      <p className="text-xs tracking-[3px] uppercase text-gray-400 mt-2">{label}</p>
     </div>
   );
 };
@@ -393,8 +388,12 @@ const Home = () => {
           </p>
           <h1 className="font-display animate-hero-up text-[clamp(60px,11vw,120px)] font-bold leading-[0.9] tracking-tight mb-8">
             Southern{" "}
-            <em className="not-italic bg-shimmer-gold bg-200-auto bg-clip-text text-transparent animate-shimmer">
+            <em className="not-italic text-[#C9A84C] relative inline-block overflow-hidden">
               Tales
+              <span
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent animate-shimmer pointer-events-none"
+                aria-hidden="true"
+              />
             </em>
           </h1>
           <p className="animate-fade-up text-[clamp(16px,2vw,20px)] text-white/50 font-light leading-relaxed mb-12 max-w-xl mx-auto">
@@ -444,7 +443,7 @@ const Home = () => {
                 <div className="relative h-52 overflow-hidden">
                   <img
                     src={o.img}
-                    srcSet={cardSrcSet(o.img.split('/upload/')[1])}
+                    srcSet={cardSrcSet(pubId(o.img))}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     alt={o.alt}
                     width={600}
@@ -510,7 +509,7 @@ const Home = () => {
                 <div className="relative h-64 overflow-hidden">
                   <img
                     src={d.img}
-                    srcSet={cardSrcSet(d.img.split('/upload/')[1])}
+                    srcSet={cardSrcSet(pubId(d.img))}
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     alt={d.alt}
                     width={600}
@@ -545,7 +544,7 @@ const Home = () => {
             <div className="absolute -inset-2 rounded-[36px] bg-gradient-to-br from-orange-500/6 to-transparent" aria-hidden="true" />
             <img
               src={IMG.about}
-              srcSet={cardSrcSet(IMG.about.split('/upload/')[1])}
+              srcSet={cardSrcSet(pubId(IMG.about))}
               sizes="(max-width: 1024px) 100vw, 50vw"
               alt="Chef preparing authentic South Indian food at Southern Tales kitchen"
               width={800}
@@ -568,7 +567,7 @@ const Home = () => {
             <p className="text-neutral-400 text-base leading-[1.9] mb-4">
               Nestled in the heart of CBD Belapur, we bring you an authentic dining experience celebrating flavors from Kerala, Tamil Nadu, Karnataka, and Andhra Pradesh.
             </p>
-            <p className="text-neutral-500 text-base leading-[1.9] mb-10">
+            <p className="text-neutral-400 text-base leading-[1.9] mb-10">
               Every dish tells a story — of grandmothers' kitchens, monsoon evenings, and the spice trails of the Deccan Plateau.
             </p>
             <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/[0.08] mb-10">
@@ -701,7 +700,7 @@ const Home = () => {
               {/* ♿ Form: labels properly associated with inputs via htmlFor/id */}
               <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
                 <div>
-                  <label htmlFor="contact-name" className="block text-[10px] tracking-[2px] uppercase text-gray-500 font-semibold mb-3">Full Name</label>
+                  <label htmlFor="contact-name" className="block text-[10px] tracking-[2px] uppercase text-gray-400 font-semibold mb-3">Full Name</label>
                   <div className="relative">
                     <User size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600" aria-hidden="true" />
                     <input
@@ -717,7 +716,7 @@ const Home = () => {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="contact-email" className="block text-[10px] tracking-[2px] uppercase text-gray-500 font-semibold mb-3">Email Address</label>
+                  <label htmlFor="contact-email" className="block text-[10px] tracking-[2px] uppercase text-gray-400 font-semibold mb-3">Email Address</label>
                   <div className="relative">
                     <Mail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600" aria-hidden="true" />
                     <input
@@ -733,7 +732,7 @@ const Home = () => {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="contact-message" className="block text-[10px] tracking-[2px] uppercase text-gray-500 font-semibold mb-3">Message</label>
+                  <label htmlFor="contact-message" className="block text-[10px] tracking-[2px] uppercase text-gray-400 font-semibold mb-3">Message</label>
                   <textarea
                     id="contact-message"
                     rows={4}
@@ -764,7 +763,7 @@ const Home = () => {
                     <Icon size={18} className="text-orange-500" />
                   </div>
                   <div>
-                    <p className="text-[10px] tracking-[2px] uppercase text-gray-500 font-semibold mb-1">{title}</p>
+                    <p className="text-[10px] tracking-[2px] uppercase text-gray-400 font-semibold mb-1">{title}</p>
                     <p className="text-base font-medium text-neutral-100">{detail}</p>
                   </div>
                 </div>
