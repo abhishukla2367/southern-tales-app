@@ -1,6 +1,3 @@
-/* leaflet/dist/leaflet.css is imported directly in LiveTrackingMap.jsx
-   Keeping it here caused a render-blocking CSS chain import on every page */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
