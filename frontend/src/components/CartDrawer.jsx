@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import API from "../api/axiosConfig";
-import socket from "../socket";
+import socket from "../socketclient";
 import TimePicker from "./admin/reservations/TimePicker";
 import DatePicker from "./admin/reservations/DatePicker";
 import OutOfHoursPopup from "./admin/reservations/OutOfHoursPopup";

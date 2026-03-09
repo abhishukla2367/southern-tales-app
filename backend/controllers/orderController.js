@@ -1,6 +1,7 @@
 const Order    = require('../models/Order');
 const Cart     = require('../models/Cart');
 const mongoose = require('mongoose');
+const { getIO } = require('../socket');
 
 // ─── Helper: Decrement stock atomically ──────────────────────────────────────
 const decrementStock = async (items) => {
@@ -48,7 +49,7 @@ exports.placeOrder = async (req, res) => {
       items, totalAmount, orderType = "delivery",
       deliveryInfo, guestName, tableNumber,
       numberOfGuests, reservationId, paymentMethod, notes,
-      scheduledDate, scheduledTime,               // ✅ read from request
+      scheduledDate, scheduledTime,
     } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0)
@@ -84,12 +85,10 @@ exports.placeOrder = async (req, res) => {
       paymentStatus: "Unpaid",
       paymentMethod: paymentMethod || "Cash",
       notes,
-      // ✅ Always save scheduled date/time if provided
       scheduledDate: scheduledDate || null,
       scheduledTime: scheduledTime || null,
     };
 
-    // ✅ FIX: Save userId for ALL order types (delivery, pickup AND dinein)
     if (userId) {
       orderData.userId = new mongoose.Types.ObjectId(userId);
     }
@@ -109,7 +108,18 @@ exports.placeOrder = async (req, res) => {
 
     const newOrder = await Order.create(orderData);
 
-    // Clear cart for logged-in customers (all types)
+    // Populate for socket broadcast
+    const populated = await Order.findById(newOrder._id)
+      .populate("userId", "name email phone");
+
+    // ── Emit new order to all admin dashboards ──
+    try {
+      getIO().to("admin_room").emit("new_order", populated);
+    } catch (e) {
+      console.warn("Socket emit skipped:", e.message);
+    }
+
+    // Clear cart for logged-in customers
     if (userId) {
       await Cart.findOneAndDelete({ userId: orderData.userId });
     }
@@ -197,6 +207,15 @@ exports.updateOrderStatus = async (req, res) => {
     order.status = status;
     await order.save();
 
+    // ── Emit status update to admin room + customer's order room ──
+    try {
+      const io = getIO();
+      io.to("admin_room").emit("order_status_updated", { orderId: id, status });
+      io.to(`order_${id}`).emit("order_status_updated", { orderId: id, status });
+    } catch (e) {
+      console.warn("Socket emit skipped:", e.message);
+    }
+
     return res.status(200).json({ success: true, message: "Order status updated.", order });
   } catch (err) {
     console.error("❌ updateOrderStatus Error:", err);
@@ -206,7 +225,7 @@ exports.updateOrderStatus = async (req, res) => {
 
 /**
  * @desc    Update order payment status (Admin)
- * @route   PATCH /api/orders/:id/payment
+ * @route   PATCH /api/orders/:id/payment-status
  * @access  Private — Admin only
  */
 exports.updateOrderPayment = async (req, res) => {
@@ -229,6 +248,13 @@ exports.updateOrderPayment = async (req, res) => {
     order.paymentStatus = paymentStatus;
     if (paymentMethod) order.paymentMethod = paymentMethod;
     await order.save();
+
+    // ── Emit payment update to admin room ──
+    try {
+      getIO().to("admin_room").emit("order_payment_updated", { orderId: id, paymentStatus });
+    } catch (e) {
+      console.warn("Socket emit skipped:", e.message);
+    }
 
     return res.status(200).json({ success: true, order });
   } catch (err) {

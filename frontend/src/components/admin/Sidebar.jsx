@@ -6,16 +6,18 @@ import {
   ClipboardList,
   CalendarDays,
   BarChart2,
+  Warehouse,
   LogOut,
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 
 const menuItems = [
-  { id: "dashboard",    label: "Dashboard",           icon: LayoutDashboard },
-  { id: "menu",         label: "Menu Management",     icon: Utensils },
-  { id: "orders",       label: "Live Orders",         icon: ClipboardList },
-  { id: "reservations", label: "Reservations",        icon: CalendarDays },
-  { id: "reports",      label: "Reports & Analytics", icon: BarChart2 },
+  { id: "dashboard",    label: "Dashboard",             icon: LayoutDashboard },
+  { id: "menu",         label: "Menu Management",       icon: Utensils        },
+  { id: "orders",       label: "Live Orders",           icon: ClipboardList   },
+  { id: "reservations", label: "Reservations",          icon: CalendarDays    },
+  { id: "reports",      label: "Reports & Analytics",   icon: BarChart2       },
+  { id: "inventory",    label: "Inventory Management",  icon: Warehouse       },
 ];
 
 export default function Sidebar({ active, onChange }) {
@@ -105,7 +107,7 @@ export default function Sidebar({ active, onChange }) {
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1" aria-label="Main navigation">
           {menuItems.map((item, i) => {
-            const Icon = item.icon;
+            const Icon     = item.icon;
             const isActive = active === item.id;
             return (
               <button
@@ -117,8 +119,8 @@ export default function Sidebar({ active, onChange }) {
                 className={`nav-item ${isActive ? "active" : ""} w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm`}
                 style={{
                   background: isActive ? "rgba(245,194,122,0.10)" : "transparent",
-                  color: isActive ? "#f5c27a" : "#aaa",
-                  border: isActive
+                  color:      isActive ? "#f5c27a" : "#aaa",
+                  border:     isActive
                     ? "1px solid rgba(245,194,122,0.15)"
                     : "1px solid transparent",
                   animationDelay: `${i * 60}ms`,
@@ -126,21 +128,17 @@ export default function Sidebar({ active, onChange }) {
                 onMouseEnter={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.background = "#1a1a1a";
-                    e.currentTarget.style.color = "#f1f1f1";
+                    e.currentTarget.style.color      = "#f1f1f1";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = "#aaa";
+                    e.currentTarget.style.color      = "#aaa";
                   }
                 }}
               >
-                <Icon
-                  size={17}
-                  strokeWidth={isActive ? 2.5 : 2}
-                  aria-hidden="true"
-                />
+                <Icon size={17} strokeWidth={isActive ? 2.5 : 2} aria-hidden="true" />
                 {item.label}
               </button>
             );
@@ -157,11 +155,11 @@ export default function Sidebar({ active, onChange }) {
             style={{ color: "#aaa" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-              e.currentTarget.style.color = "#ef4444";
+              e.currentTarget.style.color      = "#ef4444";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "#aaa";
+              e.currentTarget.style.color      = "#aaa";
             }}
           >
             <LogOut size={17} aria-hidden="true" />

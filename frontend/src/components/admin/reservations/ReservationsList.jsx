@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
 import API from "../../../api/axiosConfig";
+import socket from "../../../socketclient";
 import EmptyState from "../../admin/EmptyState";
 import ErrorState from "../../admin/ErrorState";
 import WalkInModal from "./WalkInModal";
@@ -61,16 +62,32 @@ function OutOfHoursConfirm({ onCancel, onProceed }) {
   );
 }
 
+// ─── Live indicator ───────────────────────────────────────────────────────────
+function LiveBadge({ connected }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="relative flex h-2 w-2">
+        {connected && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />}
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${connected ? "bg-emerald-400" : "bg-red-400"}`} />
+      </span>
+      <span className={`text-[9px] font-black uppercase tracking-widest ${connected ? "text-emerald-400" : "text-red-400"}`}>
+        {connected ? "Live" : "Reconnecting"}
+      </span>
+    </div>
+  );
+}
+
 export default function ReservationsList({ downloadReportRef }) {
-  const [reservations, setReservations]     = useState([]);
-  const [loading, setLoading]               = useState(true);
-  const [error, setError]                   = useState(false);
-  const [showModal, setShowModal]           = useState(false);
+  const [reservations, setReservations]         = useState([]);
+  const [loading, setLoading]                   = useState(true);
+  const [error, setError]                       = useState(false);
+  const [showModal, setShowModal]               = useState(false);
   const [showHoursConfirm, setShowHoursConfirm] = useState(false);
-  const [search, setSearch]                 = useState("");
-  const [filterStatus, setFilterStatus]     = useState("all");
-  const [filterType, setFilterType]         = useState("all");
-  const [toast, setToast]                   = useState(null);
+  const [search, setSearch]                     = useState("");
+  const [filterStatus, setFilterStatus]         = useState("all");
+  const [filterType, setFilterType]             = useState("all");
+  const [toast, setToast]                       = useState(null);
+  const [socketConnected, setSocketConnected]   = useState(socket.connected);
 
   const {
     tables,
@@ -104,6 +121,61 @@ export default function ReservationsList({ downloadReportRef }) {
 
   useEffect(() => { fetchAll(); }, []);
 
+  // ── Socket setup ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    socket.emit("join_admin");
+    setSocketConnected(socket.connected);
+
+    const onConnect    = () => setSocketConnected(true);
+    const onDisconnect = () => setSocketConnected(false);
+
+    // New reservation arrives (online booking or walk-in)
+    const onNewReservation = (reservation) => {
+      if (!reservation?._id) return;
+      setReservations((prev) => {
+        if (prev.find((r) => r._id === reservation._id)) return prev;
+        return [reservation, ...prev];
+      });
+      showToast(`New ${reservation.type === "walk-in" ? "walk-in" : "reservation"}: ${reservation.customerName || "Guest"}`);
+    };
+
+    // Status updated by another admin tab or server
+    const onStatusUpdated = ({ reservationId, status }) => {
+      setReservations((prev) =>
+        prev.map((r) => r._id === reservationId ? { ...r, status } : r)
+      );
+    };
+
+    // Table reassigned
+    const onTableUpdated = ({ reservationId, tableNumber }) => {
+      setReservations((prev) =>
+        prev.map((r) => r._id === reservationId ? { ...r, tableNumber } : r)
+      );
+    };
+
+    // Deleted by another admin tab
+    const onDeleted = ({ reservationId }) => {
+      setReservations((prev) => prev.filter((r) => r._id !== reservationId));
+    };
+
+    socket.on("connect",                      onConnect);
+    socket.on("disconnect",                   onDisconnect);
+    socket.on("new_reservation",              onNewReservation);
+    socket.on("reservation_status_updated",   onStatusUpdated);
+    socket.on("reservation_table_updated",    onTableUpdated);
+    socket.on("reservation_deleted",          onDeleted);
+
+    return () => {
+      socket.emit("leave_admin");
+      socket.off("connect",                     onConnect);
+      socket.off("disconnect",                  onDisconnect);
+      socket.off("new_reservation",             onNewReservation);
+      socket.off("reservation_status_updated",  onStatusUpdated);
+      socket.off("reservation_table_updated",   onTableUpdated);
+      socket.off("reservation_deleted",         onDeleted);
+    };
+  }, []);
+
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -111,14 +183,16 @@ export default function ReservationsList({ downloadReportRef }) {
 
   const updateStatus = async (id, status) => {
     const res = reservations.find((r) => r._id === id);
+    // Optimistic
+    setReservations((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
     try {
       await API.patch(`/reservations/${id}/status`, { status });
-      setReservations((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
       if ((status === "Completed" || status === "Cancelled") && res?.tableNumber) {
         markAvailable(res.tableNumber);
       }
     } catch {
       alert("Failed to update status. Please try again.");
+      fetchAll();
     }
   };
 
@@ -157,7 +231,6 @@ export default function ReservationsList({ downloadReportRef }) {
   const handleWalkinSave = (record) => {
     const newRecord = record?.data || record;
     if (!newRecord?._id) {
-      console.error("Walk-in record missing _id:", newRecord);
       showToast("Walk-in saved but failed to display. Please refresh.", "error");
       return;
     }

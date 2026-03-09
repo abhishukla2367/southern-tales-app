@@ -60,18 +60,20 @@ const reportRoutes      = require("./routes/reportRoutes");
 const walkinRoutes      = require("./routes/walkinRoutes");
 const billRoutes        = require("./routes/billRoutes");
 const tableRoutes       = require("./routes/tableRoutes");
+const inventoryRoutes   = require("./routes/inventoryRoutes");
 
-app.use("/api/otp",          otpRoutes);
-app.use("/api/auth",         authRoutes);
-app.use("/api/cart",         cartRoutes);
-app.use("/api/menu",         menuRoutes);
-app.use("/api/orders",       orderRoutes);
-app.use("/api/reservations", reservationRoutes);
-app.use("/api/admin",        adminRoutes);
-app.use("/api/reports",      reportRoutes);
-app.use("/api/walkin",       walkinRoutes);
-app.use("/api/bill",         billRoutes);
-app.use("/api/tables",       tableRoutes);
+app.use("/api/otp",              otpRoutes);
+app.use("/api/auth",             authRoutes);
+app.use("/api/cart",             cartRoutes);
+app.use("/api/menu",             menuRoutes);
+app.use("/api/orders",           orderRoutes);
+app.use("/api/reservations",     reservationRoutes);
+app.use("/api/admin",            adminRoutes);
+app.use("/api/reports",          reportRoutes);
+app.use("/api/walkin",           walkinRoutes);
+app.use("/api/bill",             billRoutes);
+app.use("/api/tables",           tableRoutes);
+app.use("/api/inventory-details", inventoryRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({
@@ -94,8 +96,22 @@ app.use((err, req, res, next) => {
 // --- 5. START SERVER ---
 
 const PORT = process.env.PORT || 5000;
+
 server.listen(PORT, () => {
   console.log(`🚀 Server successfully deployed on port ${PORT}`);
   console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
   console.log(`🔌 Socket.io: ready`);
+});
+
+// Graceful Error Handling for EADDRINUSE
+server.on("error", (e) => {
+  if (e.code === "EADDRINUSE") {
+    console.error(`❌ Port ${PORT} is already in use.`);
+    console.log("💡 Try these steps:");
+    console.log(`   1. Run: 'npx kill-port ${PORT}' in your terminal.`);
+    console.log(`   2. Change the PORT in your .env file to something else (e.g., 5001).`);
+    process.exit(1);
+  } else {
+    console.error("🔥 Server Error:", e);
+  }
 });

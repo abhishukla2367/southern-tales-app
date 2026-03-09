@@ -1,4 +1,5 @@
 import axios from "axios";
+import socket from "../socketclient";
 
 const API = axios.create({
   baseURL: "/api",
@@ -28,20 +29,37 @@ API.interceptors.request.use(
 
 /**
  * RESPONSE INTERCEPTOR
- * Handles session expiration and automatic logout
+ * Handles session expiration and automatic logout.
+ * Dispatches a CustomEvent with reason "session_expired" so CartContext
+ * (and other listeners) can skip API calls that would fail with 401.
  */
+let isLoggingOut = false; // prevent duplicate logout triggers
+
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    if (error.response && error.response.status === 401 && !isLoggingOut) {
+      const token = localStorage.getItem("token");
+      if (!token) return Promise.reject(error); // no token — ignore silently
+
+      isLoggingOut = true;
       console.warn("Session expired. Logging out...");
 
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      socket.disconnect();
+
+      // Notify all listeners (e.g. CartContext) that this is a session expiry logout
+      window.dispatchEvent(
+        new CustomEvent("auth:logout", { detail: { reason: "session_expired" } })
+      );
 
       if (window.location.pathname !== "/") {
         window.location.href = "/";
       }
+
+      // Reset flag after a short delay to allow future logouts
+      setTimeout(() => { isLoggingOut = false; }, 2000);
     }
     return Promise.reject(error);
   }

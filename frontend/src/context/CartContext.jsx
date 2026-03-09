@@ -14,17 +14,17 @@ export const CartProvider = ({ children }) => {
       fetchCart();
     }
 
-    // auth:logout fires BEFORE token is removed — so API call still works
-    const onLogout = async () => {
-      try {
-        await API.delete("/cart/clear"); // clears server cart while token still valid
-      } catch (e) {
-        console.error("Failed to clear server cart on logout:", e.message);
-      }
-      setCartItems([]);
-      setOrderType("");
-    };
-
+    const onLogout = async (e) => {
+  const isSessionExpired = e?.detail?.reason === "session_expired";
+  const token = localStorage.getItem("token");
+  if (!isSessionExpired && token) {
+    try {
+      await API.delete("/cart/clear");
+    } catch (err) {}
+  }
+  setCartItems([]);
+  setOrderType("");
+};
     const onLogin = () => {
       fetchCart();
     };

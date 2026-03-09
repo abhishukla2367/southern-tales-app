@@ -10,7 +10,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import API    from "../api/axiosConfig";
-import socket from "../socket";
+import socket from "../socketclient";
 
 export function useTableAvailability() {
   const [tables, setTables]   = useState([]);

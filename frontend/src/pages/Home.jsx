@@ -387,14 +387,14 @@ const Home = () => {
             Authentic Southern Cuisine · Est. 2010
           </p>
           <h1 className="font-display animate-hero-up text-[clamp(60px,11vw,120px)] font-bold leading-[0.9] tracking-tight mb-8">
-            Southern{" "}
-            <em className="not-italic text-[#C9A84C] relative inline-block overflow-hidden">
-              Tales
-              <span
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent animate-shimmer pointer-events-none"
-                aria-hidden="true"
-              />
-            </em>
+  Southern{" "}
+  <em className="not-italic text-[#C9A84C] relative inline overflow-hidden">
+    Tales
+    <span
+      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent animate-shimmer pointer-events-none"
+      aria-hidden="true"
+    />
+  </em>
           </h1>
           <p className="animate-fade-up text-[clamp(16px,2vw,20px)] text-white/50 font-light leading-relaxed mb-12 max-w-xl mx-auto">
             Heritage recipes, finest spices, timeless flavours —

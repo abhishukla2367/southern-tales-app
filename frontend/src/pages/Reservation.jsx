@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosConfig";
-import socket from "../socket";
+import socket from "../socketclient";
 import TimePicker from "../components/admin/reservations/TimePicker";
 import DatePicker from "../components/admin/reservations/DatePicker";
 
