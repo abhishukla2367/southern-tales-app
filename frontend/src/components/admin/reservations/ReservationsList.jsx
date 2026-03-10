@@ -121,7 +121,7 @@ export default function ReservationsList({ downloadReportRef }) {
 
   useEffect(() => { fetchAll(); }, []);
 
-  // ── Socket setup ────────────────────────────────────────────────────────────
+  // ── Socket setup ─────────────────────────────────────────────────────────────
   useEffect(() => {
     socket.emit("join_admin");
     setSocketConnected(socket.connected);
@@ -129,7 +129,6 @@ export default function ReservationsList({ downloadReportRef }) {
     const onConnect    = () => setSocketConnected(true);
     const onDisconnect = () => setSocketConnected(false);
 
-    // New reservation arrives (online booking or walk-in)
     const onNewReservation = (reservation) => {
       if (!reservation?._id) return;
       setReservations((prev) => {
@@ -139,21 +138,18 @@ export default function ReservationsList({ downloadReportRef }) {
       showToast(`New ${reservation.type === "walk-in" ? "walk-in" : "reservation"}: ${reservation.customerName || "Guest"}`);
     };
 
-    // Status updated by another admin tab or server
     const onStatusUpdated = ({ reservationId, status }) => {
       setReservations((prev) =>
         prev.map((r) => r._id === reservationId ? { ...r, status } : r)
       );
     };
 
-    // Table reassigned
     const onTableUpdated = ({ reservationId, tableNumber }) => {
       setReservations((prev) =>
         prev.map((r) => r._id === reservationId ? { ...r, tableNumber } : r)
       );
     };
 
-    // Deleted by another admin tab
     const onDeleted = ({ reservationId }) => {
       setReservations((prev) => prev.filter((r) => r._id !== reservationId));
     };
@@ -183,7 +179,6 @@ export default function ReservationsList({ downloadReportRef }) {
 
   const updateStatus = async (id, status) => {
     const res = reservations.find((r) => r._id === id);
-    // Optimistic
     setReservations((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
     try {
       await API.patch(`/reservations/${id}/status`, { status });
@@ -317,19 +312,36 @@ export default function ReservationsList({ downloadReportRef }) {
         </div>
       )}
 
+      {/* ── Filters row ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <input
+          id="reservations-search"
+          name="reservations-search"
+          type="text"
+          autoComplete="off"
           className="flex-1 bg-[#111111] border border-[#1f1f1f] hover:border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-[#f5c27a] transition-colors"
           placeholder="🔍  Search by name, email, phone or table…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select className={selectBase} value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+        <select
+          id="reservations-filter-type"
+          name="reservations-filter-type"
+          className={selectBase}
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+        >
           <option value="all">All Types</option>
           <option value="reserved">🌐 Online</option>
           <option value="walk-in">🚶 Walk-in</option>
         </select>
-        <select className={selectBase} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+        <select
+          id="reservations-filter-status"
+          name="reservations-filter-status"
+          className={selectBase}
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
           <option value="all">All Statuses</option>
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s} className="bg-[#111111]">{s}</option>
@@ -379,9 +391,16 @@ export default function ReservationsList({ downloadReportRef }) {
                   const period         = h < 12 ? "AM" : "PM";
                   const displayName    = res.customerName || res.name || "—";
 
+                  // Unique ids per row using the reservation's _id
+                  const tableSelectId  = `res-table-${res._id}`;
+                  const statusSelectId = `res-status-${res._id}`;
+
                   return (
-                    <tr key={res._id} className="border-b border-[#1a1a1a] hover:bg-[#161616] transition-colors"
-                      style={{ opacity: isFullyLocked ? 0.6 : 1 }}>
+                    <tr
+                      key={res._id}
+                      className="border-b border-[#1a1a1a] hover:bg-[#161616] transition-colors"
+                      style={{ opacity: isFullyLocked ? 0.6 : 1 }}
+                    >
                       <td className="px-6 py-4">
                         <p className="text-sm font-bold text-[#f1f1f1]">{displayName}</p>
                       </td>
@@ -408,12 +427,18 @@ export default function ReservationsList({ downloadReportRef }) {
                           </span>
                         </div>
                       </td>
+
+                      {/* Table select */}
                       <td className="px-6 py-4">
-                        <select disabled={isFullyLocked}
+                        <select
+                          id={tableSelectId}
+                          name={tableSelectId}
+                          disabled={isFullyLocked}
                           className={`text-xs font-bold rounded-lg px-2 py-1.5 bg-transparent border border-zinc-800 outline-none transition-colors text-zinc-300
                             ${isFullyLocked ? "opacity-50 cursor-not-allowed" : "focus:border-zinc-500 cursor-pointer"}`}
                           value={res.tableNumber || ""}
-                          onChange={(e) => updateTable(res._id, e.target.value)}>
+                          onChange={(e) => updateTable(res._id, e.target.value)}
+                        >
                           <option value="" className="bg-[#111111] text-zinc-400">Unassigned</option>
                           {tables.map((t) => {
                             const isOccupied  = t.status === "occupied";
@@ -421,28 +446,40 @@ export default function ReservationsList({ downloadReportRef }) {
                             const dot         = isOccupied ? "🔴" : "🟢";
                             const cap         = t.capacity ? ` · ${t.capacity}p` : "";
                             return (
-                              <option key={t.tableNumber} value={t.tableNumber}
-                                disabled={isOccupied && !isThisTable} className="bg-[#111111] text-white">
+                              <option
+                                key={t.tableNumber}
+                                value={t.tableNumber}
+                                disabled={isOccupied && !isThisTable}
+                                className="bg-[#111111] text-white"
+                              >
                                 {t.tableNumber}{cap} · {dot}
                               </option>
                             );
                           })}
                         </select>
                       </td>
+
+                      {/* Status select */}
                       <td className="px-6 py-4">
                         {isStatusLocked ? (
                           <span className={`text-[10px] font-black uppercase tracking-wider rounded-lg px-2.5 py-1.5 cursor-not-allowed ${styles.select}`}>
                             {res.status}
                           </span>
                         ) : (
-                          <select className={`text-[10px] font-black uppercase tracking-wider rounded-lg px-2 py-1.5 outline-none transition-all cursor-pointer ${styles.select}`}
-                            value={res.status} onChange={(e) => updateStatus(res._id, e.target.value)}>
+                          <select
+                            id={statusSelectId}
+                            name={statusSelectId}
+                            className={`text-[10px] font-black uppercase tracking-wider rounded-lg px-2 py-1.5 outline-none transition-all cursor-pointer ${styles.select}`}
+                            value={res.status}
+                            onChange={(e) => updateStatus(res._id, e.target.value)}
+                          >
                             {STATUS_OPTIONS.map((opt) => (
                               <option key={opt} value={opt} className="bg-[#111111]">{opt.toUpperCase()}</option>
                             ))}
                           </select>
                         )}
                       </td>
+
                       <td className="px-6 py-4">
                         <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border whitespace-nowrap
                           ${isWalkin ? "bg-orange-900/30 text-orange-400 border-orange-700/50" : "bg-sky-900/30 text-sky-400 border-sky-700/50"}`}>
@@ -450,8 +487,11 @@ export default function ReservationsList({ downloadReportRef }) {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button onClick={() => handleDelete(res._id)} disabled={isFullyLocked}
-                          className={`p-2 rounded-lg transition-all ${isFullyLocked ? "opacity-30 cursor-not-allowed text-zinc-600" : "text-zinc-600 hover:text-red-400 hover:bg-red-400/10"}`}>
+                        <button
+                          onClick={() => handleDelete(res._id)}
+                          disabled={isFullyLocked}
+                          className={`p-2 rounded-lg transition-all ${isFullyLocked ? "opacity-30 cursor-not-allowed text-zinc-600" : "text-zinc-600 hover:text-red-400 hover:bg-red-400/10"}`}
+                        >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>

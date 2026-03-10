@@ -168,7 +168,7 @@ export default function AdminDashboard() {
       case "orders":       return <OrdersList        downloadReportRef={downloadReportRef} />;
       case "reservations": return <ReservationsList  downloadReportRef={downloadReportRef} />;
       case "reports":      return <ReportsPage       downloadReportRef={downloadReportRef} />;
-      case "inventory":    return <InventoryManagement onStockChange={fetchAlertCount} />;
+      case "inventory":    return <InventoryManagement onStockChange={fetchAlertCount} downloadReportRef={downloadReportRef} />;
       case "__refresh__":  return null;
       default:             return <DashboardCards    downloadReportRef={downloadReportRef} />;
     }
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-2">
 
               {/* Download Report — only on relevant tabs */}
-              {["orders", "reservations", "reports"].includes(activeTab) && (
+              {["orders", "reservations", "reports", "inventory"].includes(activeTab) && (
                 <button
                   onClick={handleDownloadReport}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-[#181818] border border-[#2a2a2a] text-[#aaa] hover:border-[#6ee7b7] hover:text-[#6ee7b7] hover:bg-[#1a1a1a] active:scale-95 transition-all"

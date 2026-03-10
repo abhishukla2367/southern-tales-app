@@ -57,13 +57,11 @@ export default function WalkInModal({
     return e;
   };
 
-  // Inline warning — does NOT block saving
   const outsideHours = form.date && form.time && !isWithinBusinessHours(form.date, form.time);
 
   const handleSave = async () => {
     const e = validate();
     if (Object.keys(e).length) return setErrors(e);
-    // No hard block — admin can save outside hours
     setSaving(true);
     try {
       const res = await API.post("/reservations/walkin", {
@@ -115,9 +113,14 @@ export default function WalkInModal({
 
           {/* Guest Name */}
           <div className="col-span-2 flex flex-col gap-1.5">
-            <label className={labelBase}>Guest Name <span className="text-red-400">*</span></label>
+            <label htmlFor="walkin-customerName" className={labelBase}>
+              Guest Name <span className="text-red-400">*</span>
+            </label>
             <input
               ref={firstRef}
+              id="walkin-customerName"
+              name="walkin-customerName"
+              autoComplete="name"
               className={`${inputBase} ${errors.customerName ? "border-red-500" : "border-zinc-800"}`}
               placeholder="Full name"
               value={form.customerName}
@@ -128,8 +131,12 @@ export default function WalkInModal({
 
           {/* Phone */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelBase}>Phone</label>
+            <label htmlFor="walkin-phone" className={labelBase}>Phone</label>
             <input
+              id="walkin-phone"
+              name="walkin-phone"
+              type="tel"
+              autoComplete="tel"
               className={`${inputBase} border-zinc-800`}
               placeholder="9876543210 (optional)"
               value={form.phone}
@@ -139,8 +146,12 @@ export default function WalkInModal({
 
           {/* Guests */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelBase}>Guests <span className="text-red-400">*</span></label>
+            <label htmlFor="walkin-guests" className={labelBase}>
+              Guests <span className="text-red-400">*</span>
+            </label>
             <select
+              id="walkin-guests"
+              name="walkin-guests"
               className={`${inputBase} ${errors.guests ? "border-red-500" : "border-zinc-800"}`}
               value={form.guests}
               onChange={(e) => set("guests", e.target.value)}
@@ -156,7 +167,7 @@ export default function WalkInModal({
           {/* Table */}
           <div className="col-span-2 flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <label className={labelBase}>Table</label>
+              <label htmlFor="walkin-tableNumber" className={labelBase}>Table</label>
               <div className="flex items-center gap-3">
                 {!tablesLoading && tables.length > 0 && (
                   <span className="text-[10px] font-bold text-zinc-500">
@@ -177,6 +188,8 @@ export default function WalkInModal({
             </div>
 
             <select
+              id="walkin-tableNumber"
+              name="walkin-tableNumber"
               disabled={tablesLoading}
               className={`${inputBase} ${tableWarning ? "border-red-500" : "border-zinc-800"} ${tablesLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               value={form.tableNumber}
@@ -229,17 +242,25 @@ export default function WalkInModal({
 
           {/* Status */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelBase}>Status</label>
-            <select className={`${inputBase} border-zinc-800`} value={form.status} onChange={(e) => set("status", e.target.value)}>
+            <label htmlFor="walkin-status" className={labelBase}>Status</label>
+            <select
+              id="walkin-status"
+              name="walkin-status"
+              className={`${inputBase} border-zinc-800`}
+              value={form.status}
+              onChange={(e) => set("status", e.target.value)}
+            >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s} className="bg-[#111111]">{s}</option>
               ))}
             </select>
           </div>
 
-          {/* Date */}
+          {/* Date — label has no htmlFor since DatePicker controls its own internal input id */}
           <div className="flex flex-col gap-1.5">
-            <label className={labelBase}>Date <span className="text-red-400">*</span></label>
+            <span className={labelBase}>
+              Date <span className="text-red-400">*</span>
+            </span>
             <DatePicker
               value={form.date}
               onChange={(d) => { set("date", d); setErrors((e) => ({ ...e, date: undefined })); }}
@@ -249,9 +270,11 @@ export default function WalkInModal({
             {errors.date && <span className="text-red-400 text-xs">{errors.date}</span>}
           </div>
 
-          {/* Time */}
+          {/* Time — label has no htmlFor since TimePicker controls its own internal input id */}
           <div className="col-span-2 flex flex-col gap-1.5">
-            <label className={labelBase}>Time <span className="text-red-400">*</span></label>
+            <span className={labelBase}>
+              Time <span className="text-red-400">*</span>
+            </span>
             <TimePicker
               value={form.time}
               onChange={(t) => { set("time", t); setErrors((e) => ({ ...e, time: undefined })); }}
@@ -259,7 +282,6 @@ export default function WalkInModal({
             />
             {errors.time && <span className="text-red-400 text-xs">{errors.time}</span>}
 
-            {/* Inline outside-hours warning — does NOT block saving */}
             {outsideHours ? (
               <div className="flex items-center gap-2 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-2 mt-0.5">
                 <span className="text-amber-400 text-sm">⚠</span>
@@ -277,9 +299,12 @@ export default function WalkInModal({
 
           {/* Notes */}
           <div className="col-span-2 flex flex-col gap-1.5">
-            <label className={labelBase}>Notes</label>
+            <label htmlFor="walkin-specialRequests" className={labelBase}>Notes</label>
             <textarea
+              id="walkin-specialRequests"
+              name="walkin-specialRequests"
               rows={3}
+              autoComplete="off"
               className={`${inputBase} border-zinc-800 resize-none`}
               placeholder="Special requests, allergies, preferences…"
               value={form.specialRequests}
@@ -290,7 +315,10 @@ export default function WalkInModal({
 
         {/* Footer */}
         <div className="flex justify-end gap-3 px-7 pb-6 pt-2 border-t border-zinc-800">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-400 text-sm font-bold transition-colors">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-400 text-sm font-bold transition-colors"
+          >
             Cancel
           </button>
           <button
