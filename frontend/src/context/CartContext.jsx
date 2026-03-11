@@ -16,10 +16,12 @@ export const CartProvider = ({ children }) => {
 
     const onLogout = async (e) => {
   const isSessionExpired = e?.detail?.reason === "session_expired";
-  const token = localStorage.getItem("token");
+  const token = e?.detail?.token; // use token from event
   if (!isSessionExpired && token) {
     try {
-      await API.delete("/cart/clear");
+      await API.delete("/cart/clear", {
+        headers: { Authorization: `Bearer ${token}` } // explicitly pass it
+      });
     } catch (err) {}
   }
   setCartItems([]);

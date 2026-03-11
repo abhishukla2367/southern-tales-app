@@ -14,12 +14,9 @@ export const AuthProvider = ({ children }) => {
     });
 
     const [token, setToken] = useState(localStorage.getItem('token') || null);
-    // Initialize as false — auth is read synchronously from localStorage above,
-    // so there's no async work to wait for before rendering children
     const [loading, setLoading] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    // Internal silent clear — used by validateAuth, never sets isLoggingOut
     const clearAuth = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -48,10 +45,10 @@ export const AuthProvider = ({ children }) => {
         window.dispatchEvent(new Event('auth:login'));
     };
 
-    // User-initiated logout — sets isLoggingOut to suppress AdminRoute redirect flash
     const logout = () => {
         setIsLoggingOut(true);
-        window.dispatchEvent(new Event('auth:logout'));
+        const token = localStorage.getItem('token'); // grab before clearing
+        window.dispatchEvent(new CustomEvent('auth:logout', { detail: { token } }));
         clearAuth();
     };
 
