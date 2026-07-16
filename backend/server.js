@@ -1,4 +1,3 @@
-// server/server.js
 require("dotenv").config();
 const express    = require("express");
 const mongoose   = require("mongoose");
@@ -81,6 +80,18 @@ app.get("/api/health", (req, res) => {
     database: mongoose.connection.readyState === 1 ? "Connected" : "Disconnected",
   });
 });
+
+const path = require("path");
+
+if (process.env.NODE_ENV === "production") {
+  // Serve static assets from the React build folder
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  // Catch-all route: any non-API request gets sent to React's index.html
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
+  });
+}
 
 // --- 4. GLOBAL ERROR HANDLING ---
 

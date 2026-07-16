@@ -11,7 +11,8 @@ export const MenuProvider = ({ children }) => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/menu");
+        const apiUrl = import.meta.env.VITE_API_URL || "";
+        const response = await fetch(`${apiUrl}/menu`);
         const data = await response.json();
         setMenuItems(data);
       } catch (error) {
@@ -23,18 +24,19 @@ export const MenuProvider = ({ children }) => {
     fetchMenu();
   }, []);
 
-  // Admin Task: Update availability in MongoDB so it PERSISTS
+ // Admin Task: Update availability in MongoDB so it PERSISTS
   const toggleAvailability = async (id, currentStatus) => {
     try {
       const token = localStorage.getItem("token");
-const response = await fetch(`http://localhost:5000/api/menu/${id}`, {
-  method: "PATCH",
-  headers: { 
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  },
-  body: JSON.stringify({ available: !currentStatus }),
-});
+      const apiUrl = import.meta.env.VITE_API_URL || "";
+      const response = await fetch(`${apiUrl}/menu/${id}`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ available: !currentStatus }),
+      });
 
       if (response.ok) {
         setMenuItems((prev) =>
