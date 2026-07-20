@@ -17,6 +17,7 @@ Thumbs.db
 dist/
 build/
 
+
 # MongoDB local database files (if any)
 *.lock
 *.db
