@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import DrumColumn from "./Drumcolumn";
+import DrumColumn from "./DrumColumn";
 
 const pad = (n) => String(n).padStart(2, "0");
 
