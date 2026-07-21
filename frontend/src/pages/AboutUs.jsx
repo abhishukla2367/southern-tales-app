@@ -98,7 +98,7 @@ export default function About() {
           </h1>
 
           <p className="text-lg md:text-2xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
-            Southern Tales is a sanctuary where ancestral spice secrets meet the
+            Dosa Atelier is a sanctuary where ancestral spice secrets meet the
             finesse of modern culinary artistry.
           </p>
 
@@ -138,7 +138,7 @@ export default function About() {
 
             <div className="space-y-6 text-gray-400 text-lg leading-relaxed font-light">
               <p>
-                Southern Tales was born from a deep respect for Southern Indian
+                Dosa Atelier was born from a deep respect for Southern Indian
                 culinary traditions. We believe food isn't just sustenance—it's
                 a vessel for memory and emotion.
               </p>

@@ -7,7 +7,7 @@ import {
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 const PHONE = "919876543210";
-const WHATSAPP_MESSAGE = encodeURIComponent("Hello! I'd like to enquire about Southern Tales Restaurant.");
+const WHATSAPP_MESSAGE = encodeURIComponent("Hello! I'd like to enquire about Dosa Atelier Restaurant.");
 
 const WhatsAppIcon = ({ size = 18 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -274,7 +274,7 @@ const Contact = () => {
             </InfoCard>
             <div className="relative rounded-2xl overflow-hidden border border-zinc-800/80 h-64 group">
               <iframe
-              title="Southern Tales location map – CBD Belapur, Navi Mumbai"
+              title="Dosa Atelier location map – CBD Belapur, Navi Mumbai"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3772.3010808516046!2d73.03048397497552!3d19.006450082183886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c3601f273e93%3A0x61cd7ee22f689ac5!2sSouthern%20Tales!5e0!3m2!1sen!2sin!4v1772808306990!5m2!1sen!2sin"
               className="w-full h-full border-0 grayscale invert brightness-[0.8] contrast-[1.2]"
               allowFullScreen
@@ -349,7 +349,7 @@ const Contact = () => {
           onClick={(e) => e.target === e.currentTarget && setIsFormOpen(false)}>
           <div className="bg-[#1a1712] border border-white/10 w-full max-w-2xl rounded-3xl max-h-[90vh] overflow-y-auto">
             <header className="sticky top-0 bg-[#1a1712]/95 backdrop-blur-sm p-6 border-b border-white/5 flex justify-between items-center z-20">
-              <div><h3 className="text-xl font-bold text-white">Review Southern Tales</h3><p className="text-zinc-500 text-xs mt-0.5">Your review will appear live instantly</p></div>
+              <div><h3 className="text-xl font-bold text-white">Review Dosa Atelier</h3><p className="text-zinc-500 text-xs mt-0.5">Your review will appear live instantly</p></div>
               <button onClick={() => setIsFormOpen(false)} aria-label="Close" className="p-2 hover:bg-white/10 rounded-full transition-colors"><X size={22} aria-hidden="true" /></button>
             </header>
 

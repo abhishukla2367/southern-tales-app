@@ -144,9 +144,9 @@ exports.forgotPassword = async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `"Southern Tales" <${process.env.EMAIL_USER}>`,
+      from: `"Dosa Atelier" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: "Reset Your Password — Southern Tales",
+      subject: "Reset Your Password — Dosa Atelier",
       html: `
         <!DOCTYPE html>
         <html>
@@ -161,7 +161,7 @@ exports.forgotPassword = async (req, res) => {
                     <tr>
                       <td style="background:#f5c27a;padding:30px 40px;text-align:center;">
                         <h1 style="margin:0;color:#000;font-size:26px;font-weight:900;letter-spacing:2px;">
-                          SOUTHERN TALES
+                          Dosa Atelier
                         </h1>
                         <p style="margin:6px 0 0;color:#000;font-size:13px;opacity:0.7;letter-spacing:1px;">
                           Authentic South Indian Flavours
@@ -175,7 +175,7 @@ exports.forgotPassword = async (req, res) => {
                         <h2 style="color:#fff;margin:0 0 12px;font-size:22px;">Reset Your Password</h2>
                         <p style="color:#aaa;font-size:15px;line-height:1.7;margin:0 0 24px;">
                           Hi <strong style="color:#fff;">${user.name || "there"}</strong>,<br/>
-                          We received a request to reset the password for your Southern Tales account.
+                          We received a request to reset the password for your Dosa Atelier account.
                           Click the button below to set a new password. This link expires in
                           <strong style="color:#f5c27a;">1 hour</strong>.
                         </p>
@@ -213,7 +213,7 @@ exports.forgotPassword = async (req, res) => {
                       <td style="background:#111;padding:20px 40px;text-align:center;
                                  border-top:1px solid #2a2a2a;">
                         <p style="color:#444;font-size:12px;margin:0;">
-                          © ${new Date().getFullYear()} Southern Tales. All rights reserved.
+                          © ${new Date().getFullYear()} Dosa Atelier. All rights reserved.
                         </p>
                       </td>
                     </tr>

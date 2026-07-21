@@ -40,10 +40,10 @@ const galSrcSet = (url) => {
 
 const galleryImages = [
   { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552275/appam_xhodf7.webp",       alt: "Appam – traditional Kerala rice pancake" },
-  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552552/interior6_lmrqce.jpg",    alt: "Southern Tales restaurant interior" },
-  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552553/interior7_ewulhk.avif",   alt: "Southern Tales dining area" },
-  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552610/events1_ygyjae.jpg",      alt: "Special event at Southern Tales" },
-  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552617/events6_puhjs0.jpg",      alt: "Celebration event at Southern Tales" },
+  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552552/interior6_lmrqce.jpg",    alt: "Dosa Atelier restaurant interior" },
+  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552553/interior7_ewulhk.avif",   alt: "Dosa Atelier dining area" },
+  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552610/events1_ygyjae.jpg",      alt: "Special event at Dosa Atelier" },
+  { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552617/events6_puhjs0.jpg",      alt: "Celebration event at Dosa Atelier" },
   { url: "https://res.cloudinary.com/db2vju4mv/image/upload/v1772552477/filter-coffee_jirsbm.jpg", alt: "Authentic South Indian filter coffee" },
 ];
 
@@ -54,7 +54,7 @@ const promoVideos = [
   {
     id: "SkUXFCIjXiI",
     tag: "Restaurant Tour",
-    title: "Welcome to Southern Tales",
+    title: "Welcome to Dosa Atelier",
     desc: "Take a tour of our restaurant in CBD Belapur — the ambiance, the warmth, and the hospitality.",
   },
   {
@@ -66,13 +66,13 @@ const promoVideos = [
   {
     id: "fECzOAmRsso",
     tag: "Dining Experience",
-    title: "A Feast at Southern Tales",
+    title: "A Feast at Dosa Atelier",
     desc: "From crispy dosas to hearty meals — experience authentic South Indian dining at its finest.",
   },
 ];
 
 const heroSlides = [
-  { src: IMG.hero1, publicId: "v1772547194/heroimage_y7tlwp.jpg",  alt: "Southern Tales restaurant ambiance" },
+  { src: IMG.hero1, publicId: "v1772547194/heroimage_y7tlwp.jpg",  alt: "Dosa Atelier restaurant ambiance" },
   { src: IMG.hero2, publicId: "v1772547193/heroimage2_je0bi2.webp", alt: "Authentic South Indian cuisine spread" },
   { src: IMG.hero3, publicId: "v1772547195/heroimage3_kdxami.jpg",  alt: "Traditional South Indian dishes" },
 ];
@@ -320,7 +320,7 @@ const Home = () => {
       ══════════════════════════════════════════════════ */}
       <section
         className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden"
-        aria-label="Welcome to Southern Tales"
+        aria-label="Welcome to Dosa Atelier"
       >
         {heroSlides.map((slide, i) => (
           <div
@@ -546,7 +546,7 @@ const Home = () => {
               src={IMG.about}
               srcSet={cardSrcSet(pubId(IMG.about))}
               sizes="(max-width: 1024px) 100vw, 50vw"
-              alt="Chef preparing authentic South Indian food at Southern Tales kitchen"
+              alt="Chef preparing authentic South Indian food at Dosa Atelier kitchen"
               width={800}
               height={600}
               loading="lazy"
@@ -609,7 +609,7 @@ const Home = () => {
           <Reveal dir="up" className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-16">
             <div>
               <SectionLabel>Visual Story</SectionLabel>
-              <h2 id="gallery-heading" className="font-display text-[clamp(36px,5vw,56px)] font-bold leading-tight mt-4">Inside Southern Tales</h2>
+              <h2 id="gallery-heading" className="font-display text-[clamp(36px,5vw,56px)] font-bold leading-tight mt-4">Inside Dosa Atelier</h2>
             </div>
             <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
               A glimpse into our world — the flavours, the ambiance, and the stories behind every dish.
@@ -771,7 +771,7 @@ const Home = () => {
               {/* ♿ Google Maps iframe with descriptive title */}
               <div className="rounded-2xl overflow-hidden h-56 border border-white/5">
               <iframe
-              title="Southern Tales location map – CBD Belapur, Navi Mumbai"
+              title="Dosa Atelier location map – CBD Belapur, Navi Mumbai"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3772.3010808516046!2d73.03048397497552!3d19.006450082183886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c3601f273e93%3A0x61cd7ee22f689ac5!2sSouthern%20Tales!5e0!3m2!1sen!2sin!4v1772808306990!5m2!1sen!2sin"
               className="w-full h-full border-0 grayscale invert brightness-[0.8] contrast-[1.2]"
               allowFullScreen

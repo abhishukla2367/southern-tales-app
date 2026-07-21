@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# robots.txt — Southern Tales | https://www.southerntales.in
+# robots.txt — Dosa Atelier | https://www.southerntales.in
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Allow all search engines to crawl the full public site ───────────────────

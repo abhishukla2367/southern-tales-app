@@ -13,8 +13,8 @@ const heroImages = [
 
 const heroAlts = [
   "Authentic South Indian cuisine spread",
-  "Traditional South Indian dishes at Southern Tales",
-  "South Indian food platter at Southern Tales restaurant",
+  "Traditional South Indian dishes at Dosa Atelier",
+  "South Indian food platter at Dosa Atelier restaurant",
 ];
 const CATEGORIES  = ["All","Breakfast","Starters","Main Course","Desserts","Beverages"];
 

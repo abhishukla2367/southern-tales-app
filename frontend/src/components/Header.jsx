@@ -100,7 +100,7 @@ function CallModal({ onClose }) {
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Location</p>
-              <p className="text-sm font-bold text-white">Southern Tales Restaurant</p>
+              <p className="text-sm font-bold text-white">Dosa Atelier Restaurant</p>
               <p className="text-xs text-gray-400 mt-0.5">CBD Belapur, Navi Mumbai, Maharashtra</p>
             </div>
           </div>
@@ -165,10 +165,10 @@ const Header = () => {
         <div className="relative flex items-center justify-between px-6 lg:px-12 py-5 bg-[#1f1b16] shadow-lg">
 
           {/* LOGO SECTION */}
-          <Link to="/" className="flex items-center gap-3 no-underline" aria-label="Southern Tales – Home">
+          <Link to="/" className="flex items-center gap-3 no-underline" aria-label="Dosa Atelier – Home">
             <img
               src={LOGO_URL}
-              alt="Southern Tales Restaurant logo"
+              alt="Dosa Atelier Restaurant logo"
               width={56}
               height={56}
               loading="eager"

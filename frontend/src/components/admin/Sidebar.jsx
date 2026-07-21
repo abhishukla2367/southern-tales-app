@@ -94,7 +94,7 @@ export default function Sidebar({ active, onChange }) {
             className="font-black text-base tracking-tighter uppercase"
             style={{ color: "#f1f1f1" }}
           >
-            Southern Tales
+            Dosa Atelier
           </h1>
           <p
             className="text-[9px] font-bold uppercase tracking-[0.25em] mt-1"

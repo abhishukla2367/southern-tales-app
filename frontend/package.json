@@ -1,5 +1,5 @@
 {
-  "name": "southern-tales-app",
+  "name": "dosa-atelier-app",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,8 @@
     "@cloudinary/url-gen": "^1.22.0",
     "@fontsource/inter": "^5.2.8",
     "@react-google-maps/api": "^2.20.8",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.24",
     "axios": "^1.13.5",
     "dotenv": "^17.2.4",
     "firebase": "^12.10.0",
@@ -19,6 +21,8 @@
     "lucide-react": "^0.563.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.0",
+    "postcss": "^8.5.6",
+    "postcss-import": "^16.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
@@ -26,12 +30,8 @@
     "react-router-dom": "^6.30.3",
     "recharts": "^3.7.0",
     "socket.io-client": "^4.8.3",
-    "xlsx": "^0.18.5",
-    "@vitejs/plugin-react": "^5.1.2",
-    "autoprefixer": "^10.4.24",
-    "postcss": "^8.5.6",
-    "postcss-import": "^16.1.1",
     "tailwindcss": "^3.4.19",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   }
 }

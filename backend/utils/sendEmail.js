@@ -10,15 +10,15 @@ const transporter = nodemailer.createTransport({
 
 const sendOTPEmail = async (toEmail, otp) => {
   const mailOptions = {
-    from: `"Southern Tales" <${process.env.EMAIL_USER}>`,
+    from: `"Dosa Atelier" <${process.env.EMAIL_USER}>`,
     to: toEmail,
-    subject: "Your OTP Verification Code – Southern Tales",
+    subject: "Your OTP Verification Code – Dosa Atelier",
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; background: #0a0a0a; color: #f1f1f1; border-radius: 16px; overflow: hidden;">
         
         <div style="background: #111111; padding: 32px 40px; border-bottom: 1px solid #1f1f1f; text-align: center;">
           <h1 style="margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px; color: #f1f1f1;">
-            SOUTHERN TALES
+            Dosa Atelier
           </h1>
           <p style="margin: 4px 0 0; font-size: 10px; font-weight: 700; letter-spacing: 4px; color: #f5c27a; text-transform: uppercase;">
             Management Suite
@@ -53,7 +53,7 @@ const sendOTPEmail = async (toEmail, otp) => {
 
         <div style="padding: 20px 40px; border-top: 1px solid #1f1f1f; text-align: center;">
           <p style="margin: 0; font-size: 11px; color: #333;">
-            © ${new Date().getFullYear()} Southern Tales. All rights reserved.
+            © ${new Date().getFullYear()} Dosa Atelier. All rights reserved.
           </p>
         </div>
 

@@ -14,7 +14,7 @@ const Mission = () => {
             Mission & <br /> Core Values
           </h2>
           <p className="text-gray-400 text-xl leading-relaxed font-light">
-            Southern Tales is built on the pillars of uncompromised
+            Dosa Atelier is built on the pillars of uncompromised
             authenticity, coastal fire, and the warmth of ancestral hospitality.
             Every dish is a manuscript—crafted with generational wisdom.
           </p>

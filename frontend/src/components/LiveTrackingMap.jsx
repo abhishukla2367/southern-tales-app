@@ -21,7 +21,7 @@ const RecenterMap = ({ position }) => {
 };
 
 const LiveTrackingMap = () => {
-  // Southern Tales — Shop No.9,10,11, Sector 15, CBD Belapur, Navi Mumbai
+  // Dosa Atelier — Shop No.9,10,11, Sector 15, CBD Belapur, Navi Mumbai
   const restaurantLocation = [19.006450, 73.030484];
 
   const [deliveryLocation, setDeliveryLocation] = useState([
@@ -62,9 +62,9 @@ const LiveTrackingMap = () => {
           {/* Re-center map as delivery moves */}
           <RecenterMap position={deliveryLocation} />
 
-          {/* Southern Tales Restaurant */}
+          {/* Dosa Atelier Restaurant */}
           <Marker position={restaurantLocation}>
-            <Popup>🍽️ Southern Tales Restaurant<br />Sector 15, CBD Belapur, Navi Mumbai</Popup>
+            <Popup>🍽️ Dosa Atelier Restaurant<br />Sector 15, CBD Belapur, Navi Mumbai</Popup>
           </Marker>
 
           {/* Delivery Partner */}

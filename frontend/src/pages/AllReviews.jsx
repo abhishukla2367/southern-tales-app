@@ -207,7 +207,7 @@ const WriteReviewModal = ({ onClose, onSuccess }) => {
       <div className="bg-[#1a1712] border border-white/10 w-full max-w-2xl rounded-3xl max-h-[90vh] overflow-y-auto">
         <header className="sticky top-0 bg-[#1a1712]/95 backdrop-blur-sm p-6 border-b border-white/5 flex justify-between items-center z-20">
           <div>
-            <h3 className="text-xl font-bold text-white">Review Southern Tales</h3>
+            <h3 className="text-xl font-bold text-white">Review Dosa Atelier</h3>
             <p className="text-zinc-500 text-xs mt-0.5">Your review will appear live instantly</p>
           </div>
           <button onClick={onClose} aria-label="Close" className="p-2 hover:bg-white/10 rounded-full transition-colors">

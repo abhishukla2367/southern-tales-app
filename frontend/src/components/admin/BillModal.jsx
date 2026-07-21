@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import API from "../../api/axiosConfig";
 
-const LOGO_URL = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_200/v1772560792/southern-tales-logo_knrfgm.jpg";
+const LOGO_URL = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_200/v1772560792/dosa-atelier-logo_knrfgm.jpg";
 const RESTAURANT = {
-  name: "Southern Tales",
+  name: "Dosa Atelier",
   tagline: "Where Every Bite Tells A Story",
   address: "CBD Belapur, Navi Mumbai, Maharashtra",
   phone: "+91 98765 43210",

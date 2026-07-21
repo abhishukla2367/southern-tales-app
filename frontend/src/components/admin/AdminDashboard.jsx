@@ -208,8 +208,8 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-3 pr-6 border-r border-[#1f1f1f] flex-shrink-0">
               <div className="h-11 w-11 rounded-full overflow-hidden flex-shrink-0">
                 <img
-                  src="/southern-tales-logo.jpeg"
-                  alt="Southern Tales Logo"
+                  src="/dosa-atelier-logo.jpeg"
+                  alt="Dosa Atelier Logo"
                   className="h-full w-full object-cover"
                   onError={(e) => {
                     e.target.style.display = "none";
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
               </div>
               <div className="hidden sm:block leading-none">
                 <span className="font-black text-base tracking-tight block text-[#f1f1f1]">
-                  Southern Tales
+                  Dosa Atelier
                 </span>
                 <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-[#f5c27a]">
                   Management

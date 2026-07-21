@@ -135,7 +135,7 @@ const Footer = () => {
         <div className="border-t border-white/10 pt-8 text-center">
           <p className="text-gray-400 text-sm">
             © {new Date().getFullYear()}{" "}
-            <span className="text-orange-500">Southern Tales</span>. All rights reserved.
+            <span className="text-orange-500">Dosa Atelier</span>. All rights reserved.
           </p>
         </div>
       </div>
