@@ -7,7 +7,6 @@ import TimePicker from "./admin/reservations/TimePicker";
 import DatePicker from "./admin/reservations/DatePicker";
 import OutOfHoursPopup from "./admin/reservations/OutOfHoursPopup";
 
-const EATSURE_LOGO = "https://res.cloudinary.com/db2vju4mv/image/upload/v1772896571/eat-sure-logo_wsbtia.jpg";
 const EMPTY_CART_IMG = "https://res.cloudinary.com/db2vju4mv/image/upload/v1772896571/empty-cart_sbolaw.jpg";
 
 const TABLE_IDS = [
@@ -198,11 +197,13 @@ const CartDrawer = () => {
 
   const { isDineinOpen, reopenLabel } = getDineinStatus(todayStr, dineinDate);
 
+  // No official partnership with any third-party delivery platform,
+  // so we only show plain text options (no third-party logos/trademarks).
   const deliveryPlatforms = [
-    { name: "Zomato",  logo: "https://upload.wikimedia.org/wikipedia/commons/7/75/Zomato_logo.png" },
-    { name: "Swiggy",  logo: "https://upload.wikimedia.org/wikipedia/commons/1/13/Swiggy_logo.png" },
-    { name: "Dominos", logo: "https://upload.wikimedia.org/wikipedia/commons/7/74/Dominos_pizza_logo.svg" },
-    { name: "EatSure", logo: EATSURE_LOGO },
+    { name: "Zomato" },
+    { name: "Swiggy" },
+    { name: "Dominos" },
+    { name: "EatSure" },
   ];
 
   // isTimeInvalid now works correctly with 24h format
@@ -351,12 +352,11 @@ const CartDrawer = () => {
                   <div className="grid grid-cols-2 gap-4">
                     {deliveryPlatforms.map((p) => (
                       <button key={p.name} onClick={() => setPlatform(p.name)}
-                        className={`flex items-center gap-3 px-4 py-2 rounded-xl border font-semibold transition-all ${
+                        className={`flex items-center justify-center px-4 py-3 rounded-xl border font-semibold transition-all ${
                           platform === p.name
                             ? "bg-orange-900/30 border-orange-500 text-white shadow-lg"
                             : "bg-gray-900 border-gray-800 text-gray-400 hover:bg-gray-800"
                         }`}>
-                        <img src={p.logo} alt={p.name} className="w-6 h-6 object-contain" />
                         <span>{p.name}</span>
                       </button>
                     ))}
