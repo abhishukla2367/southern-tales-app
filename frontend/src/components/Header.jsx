@@ -8,7 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
 // ─── CLOUDINARY LOGO CONFIG ──────────────────────────────────────────────────
-const LOGO_URL = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_120,e_colorize,co_white,e_brightness:50/v1772948791/southern_tales_logo_imwqjv.png";
+const LOGO_URL = "https://res.cloudinary.com/db2vju4mv/image/upload/f_auto,q_auto,w_120,e_colorize,co_white,e_brightness:50/v1772948791/dosa_atelier_logo_imwqjv.png";
 
 const PHONE = "+919876543210";
 const dial = () => window.open(`tel:${PHONE}`, "_self");

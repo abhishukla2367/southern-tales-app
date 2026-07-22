@@ -204,7 +204,7 @@ export default function ReportsPage({ downloadReportRef }) {
       XLSX.utils.book_append_sheet(wb, wsItems, "Top Items");
     }
 
-    XLSX.writeFile(wb, `SouthernTales_Report_${activeTab}_${dateSlug}.xlsx`);
+    XLSX.writeFile(wb, `dosaatelier_Report_${activeTab}_${dateSlug}.xlsx`);
   }, [data, activeTab]);
 
   useEffect(() => {

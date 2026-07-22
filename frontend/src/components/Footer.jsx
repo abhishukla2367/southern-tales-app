@@ -35,7 +35,7 @@ const Footer = () => {
   const contactInfo = [
     { Icon: MapPin, text: "CBD Belapur, Navi Mumbai, Maharashtra", href: null },
     { Icon: Phone,  text: "+91 98765 43210",       href: "tel:+919876543210" },
-    { Icon: Mail,   text: "hello@southerntales.in", href: "mailto:hello@southerntales.in" },
+    { Icon: Mail,   text: "hello@dosaatelier.in", href: "mailto:hello@dosaatelier.in" },
     { Icon: Clock,  text: "Mon – Fri: 7 AM – 10:30 PM\nSat – Sun: 8 AM – 11 PM", href: null },
   ];
 

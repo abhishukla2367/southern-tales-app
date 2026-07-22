@@ -104,7 +104,7 @@ const services = [
 const contactInfo = [
   { Icon: MapPin, title: "Our Location", detail: "CBD Belapur, Navi Mumbai, Maharashtra" },
   { Icon: Phone,  title: "Call Us",      detail: "+91 98765 43210" },
-  { Icon: Mail,   title: "Email Us",     detail: "hello@southerntales.in" },
+  { Icon: Mail,   title: "Email Us",     detail: "hello@dosaatelier.in" },
   { Icon: Clock,  title: "Hours",        detail: "Mon – Fri: 7 AM – 10:30 PM · Sat – Sun: 8 AM – 11 PM" },
 ];
 

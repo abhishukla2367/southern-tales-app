@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# robots.txt — Dosa Atelier | https://www.southerntales.in
+# robots.txt — Dosa Atelier | https://www.dosaatelier.in
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Allow all search engines to crawl the full public site ───────────────────
@@ -81,4 +81,4 @@ Disallow: /
 # ─────────────────────────────────────────────────────────────────────────────
 # Sitemap location
 # ─────────────────────────────────────────────────────────────────────────────
-Sitemap: https://www.southerntales.in/sitemap.xml
+Sitemap: https://www.dosaatelier.in/sitemap.xml

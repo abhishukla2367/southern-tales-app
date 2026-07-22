@@ -17,7 +17,7 @@ const upload  = multer({
 const uploadToCloudinary = (fileBuffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "southern_tales_menu", use_filename: true },
+      { folder: "dosa_atelier_menu", use_filename: true },
       (error, result) => { if (error) reject(error); else resolve(result); }
     );
     stream.end(fileBuffer);

@@ -269,7 +269,7 @@ export default function DashboardCards({ downloadReportRef }) {
       XLSX.utils.book_append_sheet(wb, wsTrend, "Activity Trend");
     }
 
-    XLSX.writeFile(wb, `SouthernTales_Dashboard_${dateSlug}.xlsx`);
+    XLSX.writeFile(wb, `dosaatelier_Dashboard_${dateSlug}.xlsx`);
   }, [data, history]);
 
   useEffect(() => {

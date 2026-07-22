@@ -432,7 +432,7 @@ export default function OrdersList({ downloadReportRef }) {
     ws["!cols"] = Object.keys(rows[0] || {}).map((k) => ({ wch: Math.max(k.length, ...rows.map((r) => String(r[k] ?? "").length)) + 2 }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, label);
-    XLSX.writeFile(wb, `SouthernTales_Orders_${label}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `dosaatelier_Orders_${label}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }, [orders, activeFilter]);
 
   useEffect(() => {

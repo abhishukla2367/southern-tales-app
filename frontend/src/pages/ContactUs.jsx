@@ -263,8 +263,8 @@ const Contact = () => {
               <a href="tel:+912227651234" className="block text-zinc-400 text-sm mt-0.5 hover:text-[#f5c27a] transition-colors duration-200">+91 22 2765 1234</a>
             </InfoCard>
             <InfoCard icon={<Mail size={20} className="text-[#f5c27a]" aria-hidden="true" />} title="Email Us">
-              <a href="mailto:hello@southerntales.in" className="block text-white font-semibold text-sm hover:text-[#f5c27a] transition-colors duration-200 break-all">hello@southerntales.in</a>
-              <a href="mailto:reservations@southerntales.in" className="block text-zinc-400 text-sm mt-0.5 hover:text-[#f5c27a] transition-colors duration-200 break-all">reservations@southerntales.in</a>
+              <a href="mailto:hello@dosaatelier.in" className="block text-white font-semibold text-sm hover:text-[#f5c27a] transition-colors duration-200 break-all">hello@dosaatelier.in</a>
+              <a href="mailto:reservations@dosaatelier.in" className="block text-zinc-400 text-sm mt-0.5 hover:text-[#f5c27a] transition-colors duration-200 break-all">reservations@dosaatelier.in</a>
             </InfoCard>
             <InfoCard icon={<Clock size={20} className="text-[#f5c27a]" aria-hidden="true" />} title="Business Hours">
               <div className="space-y-2">

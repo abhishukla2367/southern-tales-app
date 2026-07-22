@@ -288,7 +288,7 @@ export default function ReservationsList({ downloadReportRef }) {
     }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `Reservations_${typeLabel}`);
-    XLSX.writeFile(wb, `SouthernTales_Reservations_${typeLabel}${statusLabel}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `dosaatelier_Reservations_${typeLabel}${statusLabel}_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }, [filtered, filterType, filterStatus]);
 
   useEffect(() => {
