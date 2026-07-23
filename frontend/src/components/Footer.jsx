@@ -52,7 +52,7 @@ const Footer = () => {
           <div>
             <div className="mb-5">
               <h3 className="text-2xl font-bold text-white">
-                Southern <span className="text-orange-500">Tales</span>
+                Dosa <span className="text-orange-500">Atelier</span>
               </h3>
               <p className="text-xs tracking-[3px] uppercase text-[#C9A84C] mt-1">
                 Authentic Southern Cuisine
