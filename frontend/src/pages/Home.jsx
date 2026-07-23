@@ -387,9 +387,9 @@ const Home = () => {
             Authentic Southern Cuisine · Est. 2010
           </p>
           <h1 className="font-display animate-hero-up text-[clamp(60px,11vw,120px)] font-bold leading-[0.9] tracking-tight mb-8">
-  Southern{" "}
+  Dosa{" "}
   <em className="not-italic text-[#C9A84C] relative inline overflow-hidden">
-    Tales
+    Atelier
     <span
       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/35 to-transparent animate-shimmer pointer-events-none"
       aria-hidden="true"

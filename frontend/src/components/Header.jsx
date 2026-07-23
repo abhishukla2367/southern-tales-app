@@ -177,7 +177,7 @@ const Header = () => {
             />
             <div className="flex flex-col leading-tight">
               <span className="text-2xl font-black text-white tracking-tight">
-                Southern <span className="text-[#f5c27a]">Tales</span>
+                Dosa <span className="text-[#f5c27a]">Atelier</span>
               </span>
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f5c27a]/70">
                 Authentic Southern Cuisine
